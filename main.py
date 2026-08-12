@@ -7,15 +7,18 @@ import json
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, File, Request, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from sqlalchemy.exc import SQLAlchemyError
 
+from database import Base, engine
 from extract_text import TextExtractionError, extract_text
 from llm_extractor import LLMExtractionError, extract_with_gemini
 from merge import merge_resume_data
 from regex_extractor import extract_contact_data
 
-app = FastAPI(title="Hybrid Resume Parser", version="1.0.0")
+app = FastAPI(title="Resume Parser & User Management API", version="2.0.0")
 
 
 class ResumeProcessingError(Exception):
@@ -32,6 +35,32 @@ async def processing_error_handler(_: Request, exc: ResumeProcessingError) -> JS
     return JSONResponse(status_code=exc.status_code, content={"error": {"message": exc.message}})
 
 
+@app.exception_handler(HTTPException)
+async def http_error_handler(_: Request, exc: HTTPException) -> JSONResponse:
+    """Keep router errors in one predictable JSON envelope."""
+    return JSONResponse(status_code=exc.status_code, content={"error": {"message": exc.detail}})
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={"error": {"message": "Invalid request data.", "details": exc.errors()}},
+    )
+
+
+@app.on_event("startup")
+def create_database_tables() -> None:
+    """Create SQLite tables automatically on the first application start."""
+    try:
+        # Importing models registers all table classes with SQLAlchemy metadata.
+        import models  # noqa: F401
+
+        Base.metadata.create_all(bind=engine)
+    except SQLAlchemyError as exc:
+        raise RuntimeError("Database initialization failed.") from exc
+
+
 def parse_resume(file_bytes: bytes, filename: str) -> dict:
     """Run extraction, regex parsing, Gemini parsing, and merge in one reusable pipeline."""
     extension = Path(filename).suffix.lower()
@@ -46,6 +75,16 @@ def parse_resume(file_bytes: bytes, filename: str) -> dict:
         raise ResumeProcessingError(str(exc), 422) from exc
     except LLMExtractionError as exc:
         raise ResumeProcessingError(str(exc), 502) from exc
+
+
+# Routers are imported after parse_resume so resume_routes can reuse this exact function.
+from routers.auth_routes import router as auth_router  # noqa: E402
+from routers.profile_routes import router as profile_router  # noqa: E402
+from routers.resume_routes import router as resume_router  # noqa: E402
+
+app.include_router(auth_router)
+app.include_router(profile_router)
+app.include_router(resume_router)
 
 
 @app.post("/parse-resume", summary="Upload a PDF or DOCX resume and receive normalized JSON")

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from datetime import datetime
+from typing import Any, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class StrictModel(BaseModel):
@@ -84,3 +85,123 @@ class FinalResumeData(LLMResumeData):
     phone: Optional[str] = None
     linkedin: Optional[str] = None
     github: Optional[str] = None
+
+
+# The following schemas are for the authenticated API. They are separate from the
+# strict Gemini response schemas above because API clients may omit optional fields.
+class RegisterRequest(BaseModel):
+    username: str = Field(min_length=3, max_length=50, pattern=r"^[A-Za-z0-9_.-]+$")
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=128)
+
+
+class PasswordBase(BaseModel):
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("password")
+    @classmethod
+    def password_needs_letter_and_digit(cls, value: str) -> str:
+        if not any(char.isalpha() for char in value) or not any(char.isdigit() for char in value):
+            raise ValueError("Password must contain at least one letter and one number.")
+        return value
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def new_password_needs_letter_and_digit(cls, value: str) -> str:
+        if not any(char.isalpha() for char in value) or not any(char.isdigit() for char in value):
+            raise ValueError("New password must contain at least one letter and one number.")
+        return value
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    reset_token: str = Field(min_length=1)
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def reset_password_needs_letter_and_digit(cls, value: str) -> str:
+        if not any(char.isalpha() for char in value) or not any(char.isdigit() for char in value):
+            raise ValueError("New password must contain at least one letter and one number.")
+        return value
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class MessageResponse(BaseModel):
+    message: str
+    # Exposed only for local development because this starter project has no email provider.
+    reset_token: str | None = None
+
+
+class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    username: str
+    email: EmailStr
+    is_active: bool
+    created_at: datetime
+
+
+class ProfileBase(BaseModel):
+    full_name: str | None = Field(default=None, max_length=150)
+    phone: str | None = Field(default=None, max_length=40)
+    address: str | None = Field(default=None, max_length=500)
+    bio: str | None = None
+    linkedin: str | None = Field(default=None, max_length=300)
+    github: str | None = Field(default=None, max_length=300)
+    skills: list[str] = Field(default_factory=list)
+    education: list[dict[str, Any]] = Field(default_factory=list)
+    experience: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class ProfileCreate(ProfileBase):
+    pass
+
+
+class ProfileUpdate(BaseModel):
+    full_name: str | None = Field(default=None, max_length=150)
+    phone: str | None = Field(default=None, max_length=40)
+    address: str | None = Field(default=None, max_length=500)
+    bio: str | None = None
+    linkedin: str | None = Field(default=None, max_length=300)
+    github: str | None = Field(default=None, max_length=300)
+    skills: list[str] | None = None
+    education: list[dict[str, Any]] | None = None
+    experience: list[dict[str, Any]] | None = None
+
+
+class ProfileResponse(ProfileBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class ResumeResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    original_filename: str
+    stored_filename: str
+    parsed_json: dict[str, Any]
+    uploaded_at: datetime

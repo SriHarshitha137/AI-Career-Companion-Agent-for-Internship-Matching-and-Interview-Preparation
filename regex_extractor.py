@@ -28,7 +28,7 @@ SECTION_WORDS = {
 
 def _first_match(pattern: re.Pattern[str], text: str) -> str | None:
     match = pattern.search(text)
-    return match.group(0).rstrip(".,;:)\]") if match else None
+    return match.group(0).rstrip(".,;:)]") if match else None
 
 
 def _best_effort_name(text: str) -> str | None:
