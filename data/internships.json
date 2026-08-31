@@ -1,0 +1,80 @@
+[
+  {
+    "internship_id": "se-001",
+    "title": "Software Engineering Intern",
+    "company": "Nexora Labs",
+    "description": "Build and test backend services for a student-focused web platform. Work with engineers on APIs, data models, and reliable integrations.",
+    "required_skills": ["Python", "SQL", "Git"],
+    "preferred_skills": ["FastAPI", "Docker", "REST APIs"],
+    "eligibility": "Students pursuing Computer Science, Information Technology, or a related field.",
+    "location": "Bengaluru, India",
+    "duration": "6 months",
+    "stipend": "₹20,000/month",
+    "application_url": "https://example.com/apply/nexora-se"
+  },
+  {
+    "internship_id": "fs-002",
+    "title": "Full Stack Developer Intern",
+    "company": "CampusCart",
+    "description": "Develop features across a React interface and Python API. Help improve an online marketplace used by university communities.",
+    "required_skills": ["JavaScript", "React", "Python", "SQL"],
+    "preferred_skills": ["FastAPI", "PostgreSQL", "Git"],
+    "eligibility": "Open to undergraduate and postgraduate engineering students.",
+    "location": "Remote (India)",
+    "duration": "4 months",
+    "stipend": "₹15,000/month",
+    "application_url": "https://example.com/apply/campuscart-fullstack"
+  },
+  {
+    "internship_id": "ml-003",
+    "title": "Machine Learning Intern",
+    "company": "InsightWorks AI",
+    "description": "Prepare datasets, evaluate prediction models, and communicate findings with the product team. The team builds practical analytics tools.",
+    "required_skills": ["Python", "Machine Learning", "Pandas", "NumPy"],
+    "preferred_skills": ["scikit-learn", "Data Visualization", "SQL"],
+    "eligibility": "Students with coursework or projects in machine learning or data science.",
+    "location": "Hyderabad, India",
+    "duration": "6 months",
+    "stipend": "₹22,000/month",
+    "application_url": "https://example.com/apply/insightworks-ml"
+  },
+  {
+    "internship_id": "da-004",
+    "title": "Data Analytics Intern",
+    "company": "MetricSpring",
+    "description": "Analyse operational data, create dashboards, and write clear reports for business teams. This role focuses on data quality and insight generation.",
+    "required_skills": ["SQL", "Excel", "Python"],
+    "preferred_skills": ["Power BI", "Tableau", "Pandas"],
+    "eligibility": "Open to students in engineering, statistics, economics, or related disciplines.",
+    "location": "Pune, India",
+    "duration": "3 months",
+    "stipend": "₹12,000/month",
+    "application_url": "https://example.com/apply/metricspring-data"
+  },
+  {
+    "internship_id": "be-005",
+    "title": "Backend Engineering Intern",
+    "company": "CloudHarbor",
+    "description": "Assist with secure API development, database queries, and automated tests for cloud workflow software.",
+    "required_skills": ["Python", "REST APIs", "SQL", "Git"],
+    "preferred_skills": ["Docker", "FastAPI", "AWS"],
+    "eligibility": "Computer science or related students with programming project experience.",
+    "location": "Chennai, India",
+    "duration": "6 months",
+    "stipend": "₹18,000/month",
+    "application_url": "https://example.com/apply/cloudharbor-backend"
+  },
+  {
+    "internship_id": "ui-006",
+    "title": "Frontend Developer Intern",
+    "company": "BrightPath Education",
+    "description": "Create accessible web interfaces for learning tools and collaborate with designers to turn product ideas into responsive pages.",
+    "required_skills": ["JavaScript", "HTML", "CSS", "React"],
+    "preferred_skills": ["TypeScript", "Figma", "Git"],
+    "eligibility": "Open to students with frontend projects or a portfolio.",
+    "location": "Remote (India)",
+    "duration": "3 months",
+    "stipend": "₹14,000/month",
+    "application_url": "https://example.com/apply/brightpath-frontend"
+  }
+]

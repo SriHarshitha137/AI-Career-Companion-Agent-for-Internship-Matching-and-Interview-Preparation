@@ -1,0 +1,5 @@
+__pycache__/
+*.py[cod]
+.env
+data/internship_vector_index.json
+uploads/

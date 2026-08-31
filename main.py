@@ -8,8 +8,9 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
 from database import Base, engine
@@ -81,10 +82,20 @@ def parse_resume(file_bytes: bytes, filename: str) -> dict:
 from routers.auth_routes import router as auth_router  # noqa: E402
 from routers.profile_routes import router as profile_router  # noqa: E402
 from routers.resume_routes import router as resume_router  # noqa: E402
+from routers.internship_routes import router as internship_router  # noqa: E402
 
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(resume_router)
+app.include_router(internship_router)
+
+WEB_DIRECTORY = Path("web")
+app.mount("/web", StaticFiles(directory=WEB_DIRECTORY), name="web")
+
+
+@app.get("/", include_in_schema=False)
+def web_dashboard() -> FileResponse:
+    return FileResponse(WEB_DIRECTORY / "index.html")
 
 
 @app.post("/parse-resume", summary="Upload a PDF or DOCX resume and receive normalized JSON")

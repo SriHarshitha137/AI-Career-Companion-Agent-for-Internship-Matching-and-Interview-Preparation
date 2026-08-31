@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Internship Match AI</title><link rel="stylesheet" href="/web/styles.css">
+</head>
+<body>
+  <main>
+    <header><p class="eyebrow">RESUME TO OPPORTUNITY</p><h1>Internship Match AI</h1><p>Use your stored resume and profile to discover grounded internship recommendations.</p></header>
+    <section id="auth" class="panel">
+      <h2>Get started</h2><p>Create an account or sign in, then add skills or upload your resume through the API documentation.</p>
+      <div class="forms"><form id="login"><h3>Sign in</h3><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password" required><button>Sign in</button></form>
+      <form id="register"><h3>Create account</h3><input name="username" placeholder="Username" required><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password (8+ chars, letter + digit)" required><button>Create account</button></form></div>
+    </section>
+    <section id="dashboard" hidden>
+      <div class="panel action"><div><p class="eyebrow">YOUR CANDIDATE DATA</p><h2 id="welcome">Your profile</h2><p id="profile-copy">Loading your saved profile and latest parsed resume…</p></div><button id="match">Find My Best Internship Matches</button></div>
+      <section class="panel forms"><form id="candidate"><h3>Candidate profile</h3><input name="full_name" placeholder="Full name"><input name="skills" placeholder="Skills, separated by commas"><button>Save profile</button></form><form id="upload"><h3>Upload resume</h3><input name="file" type="file" accept=".pdf,.docx" required><p class="meta">A Gemini key is required for resume extraction.</p><button>Extract and save resume</button></form></section>
+      <p id="message" role="status"></p><div id="skills" class="chips"></div><div id="results"></div>
+    </section>
+  </main><script src="/web/app.js"></script>
+</body></html>

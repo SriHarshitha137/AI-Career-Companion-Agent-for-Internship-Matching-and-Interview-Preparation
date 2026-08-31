@@ -205,3 +205,36 @@ class ResumeResponse(BaseModel):
     stored_filename: str
     parsed_json: dict[str, Any]
     uploaded_at: datetime
+
+
+class MatchRequest(BaseModel):
+    top_k: int = Field(default=5, ge=1, le=20)
+
+
+class InternshipRecommendation(BaseModel):
+    internship_id: str
+    title: str
+    company: str
+    description: str
+    required_skills: list[str] = Field(default_factory=list)
+    preferred_skills: list[str] = Field(default_factory=list)
+    eligibility: str | None = None
+    location: str | None = None
+    duration: str | None = None
+    stipend: str | None = None
+    application_url: str | None = None
+    match_score: int
+    matching_skills: list[str] = Field(default_factory=list)
+    missing_skills: list[str] = Field(default_factory=list)
+    reason: str
+
+
+class MatchResponse(BaseModel):
+    candidate_skills: list[str] = Field(default_factory=list)
+    recommendations: list[InternshipRecommendation] = Field(default_factory=list)
+
+
+class IngestionResponse(BaseModel):
+    indexed: bool
+    internships: int
+    chunks: int

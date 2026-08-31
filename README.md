@@ -1,9 +1,12 @@
 # Resume Parser & User Management API
 
-FastAPI backend for both internship assignments:
+FastAPI application for both internship assignments:
 
 1. User registration, JWT authentication, password management, and owner-only profiles.
 2. Authenticated PDF/DOCX resume uploads using the existing hybrid parser (regex + Gemini), with the uploaded file and parsed JSON stored in SQLite.
+3. **Milestone 2:** authenticated RAG-style internship retrieval and ranking based on the user's saved profile and most recent parsed resume.
+
+The application also serves a small, usable dashboard at `http://127.0.0.1:8000/` for signing in and viewing recommendations.
 
 ## Folder structure
 
@@ -24,6 +27,11 @@ AI_INTERNSHIP_APPLICATION_AGENT/
 │   ├── auth_routes.py          # Authentication and password routes
 │   ├── profile_routes.py       # Owner-only profile/account routes
 │   └── resume_routes.py        # Protected resume upload route
+├── services/
+│   ├── internship_index.py      # Dataset loading, chunks, embeddings, persisted vector index
+│   └── internship_matcher.py    # Candidate query building and grounded ranking
+├── data/internships.json        # Internship knowledge-base dataset
+├── web/                         # Static matching dashboard served by FastAPI
 ├── uploads/                    # Received resume files (created automatically)
 ├── parsed_json/                # Reserved for JSON exports
 └── requirements.txt
@@ -58,6 +66,8 @@ $env:GEMINI_MODEL="gemini-3.6-flash"
 $env:ACCESS_TOKEN_EXPIRE_MINUTES="60"
 $env:MAX_UPLOAD_BYTES="5242880"  # 5 MB
 ```
+
+Milestone 2 configuration is included in `.env.example`. The default `EMBEDDING_PROVIDER=local` creates deterministic normalized feature vectors and saves them to `data/internship_vector_index.json`; it needs no additional API key. To use Gemini embeddings instead, set `EMBEDDING_PROVIDER=gemini` and provide `GEMINI_API_KEY`. Do not commit a real `.env` file.
 
 For permanent Windows variables use `setx GEMINI_API_KEY "..."` and `setx JWT_SECRET_KEY "..."`, then open a new terminal.
 
@@ -148,6 +158,49 @@ curl.exe -X POST "http://127.0.0.1:8000/resume/upload" -H "Authorization: Bearer
 ```json
 {"id": 1, "original_filename": "resume.pdf", "stored_filename": "uuid.pdf", "parsed_json": {"full_name": "Asha Sharma", "technical_skills": ["Python"], "email": "asha@example.com"}, "uploaded_at": "2026-08-07T10:05:00Z"}
 ```
+
+## Milestone 2: internship matching
+
+The knowledge base is `data/internships.json`. Each record keeps its original structured fields (title, company, description, skills, eligibility, location, duration, stipend, and application URL). Ingestion converts each record into a labeled text document; only long documents are split into overlapping chunks. Every chunk keeps the full source record and internship ID metadata.
+
+`POST /internships/ingest` builds the persisted index. It is safe to call repeatedly: it skips rebuilding when the dataset and embedding provider have not changed. Add `?force=true` after changing embedding settings. `POST /internships/match` uses the authenticated user's profile plus latest stored `parsed_json`, creates a candidate representation, retrieves the most relevant unique internships, then ranks them using semantic score (45%), required-skill coverage (45%), and preferred-skill coverage (10%). The displayed percentage is that defined ranking score, not an LLM-generated value.
+
+Recommendation explanations are generated only from retrieved internship fields and exact skills detected in the candidate data. Therefore, the UI/API reports unavailable fields as unavailable and does not invent requirements, locations, stipends, or URLs.
+
+### Matching endpoints
+
+Set a token after logging in:
+
+```powershell
+$token = "paste_access_token_here"
+```
+
+Build or refresh the index:
+
+```powershell
+curl.exe -X POST "http://127.0.0.1:8000/internships/ingest" -H "Authorization: Bearer $token"
+```
+
+Find matches using the profile and most recently uploaded resume—no duplicate resume data is required:
+
+```powershell
+curl.exe -X POST "http://127.0.0.1:8000/internships/match" -H "Authorization: Bearer $token" -H "Content-Type: application/json" -d "{\"top_k\":5}"
+```
+
+The response contains `match_score`, matching/missing skills, a grounded reason, and all available internship metadata. Both endpoints enforce the existing JWT authentication and never read another user's profile or resume.
+
+### Dashboard workflow
+
+1. Register or sign in at `/`.
+2. Create/update a profile or upload a resume using the existing protected API (Swagger is at `/docs`).
+3. Select **Find My Best Internship Matches**.
+4. Review the ranked cards, including skill coverage, eligibility, and application links where the dataset provides them.
+
+## Limitations
+
+- The included data is deliberately small sample data. Replace `data/internships.json` with the supplied internship dataset when available, retaining the documented fields.
+- The default local embedding is privacy-friendly and dependency-free, but Gemini embeddings may offer stronger semantic recall for larger datasets.
+- A production deployment should add migrations, email delivery for password reset, HTTPS, and server-side token revocation.
 
 ### Change password — `POST /change-password`
 
