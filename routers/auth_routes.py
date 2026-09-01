@@ -17,6 +17,11 @@ from schemas import (
 router = APIRouter(tags=["Authentication"])
 
 
+@router.get("/me", response_model=UserResponse)
+def me(current_user: CurrentUser) -> UserResponse:
+    return current_user
+
+
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(payload: RegisterRequest, db: DBSession) -> UserResponse:
     if get_user_by_email(db, str(payload.email)) or get_user_by_username(db, payload.username):

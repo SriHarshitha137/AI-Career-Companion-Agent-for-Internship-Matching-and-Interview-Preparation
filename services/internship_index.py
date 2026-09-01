@@ -151,3 +151,8 @@ def search(query: str, top_k: int) -> list[dict[str, Any]]:
         if len(best) >= top_k:
             break
     return list(best.values())
+
+
+def get_internship(internship_id: str) -> dict[str, Any] | None:
+    """Look up the source record without treating user input as a search query."""
+    return next((record for record in _dataset() if record["internship_id"] == internship_id), None)

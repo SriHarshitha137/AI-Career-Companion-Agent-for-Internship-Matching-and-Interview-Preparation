@@ -14,7 +14,8 @@ def _items(value: Any) -> list[str]:
 
 def candidate_data(profile: Any, resume: Any) -> dict[str, Any]:
     parsed = resume.parsed_json if resume else {}
-    skills = _items(getattr(profile, "skills", [])) + _items(parsed.get("technical_skills"))
+    skills = (_items(getattr(profile, "skills", [])) + _items(getattr(profile, "technical_skills", []))
+              + _items(parsed.get("technical_skills")) + _items(parsed.get("soft_skills")))
     education = _items(getattr(profile, "education", [])) + _items(parsed.get("education"))
     experience = _items(getattr(profile, "experience", [])) + _items(parsed.get("work_experience")) + _items(parsed.get("internships"))
     projects = _items(parsed.get("projects"))
@@ -51,9 +52,15 @@ def match(candidate: dict[str, Any], retrieved: list[dict[str, Any]]) -> list[di
         missing = [skill for skill in required if _normalize(skill) not in candidate_skills]
         required_ratio = len([skill for skill in required if _normalize(skill) in candidate_skills]) / max(1, len(required))
         preferred_ratio = len([skill for skill in preferred if _normalize(skill) in candidate_skills]) / max(1, len(preferred))
-        score = round(min(100, 100 * (0.45 * max(0.0, result["semantic_score"]) + 0.45 * required_ratio + 0.10 * preferred_ratio)))
+        semantic_similarity = round(min(100, max(0, result["semantic_score"] * 100)))
+        skill_match_percentage = round(100 * ((0.8 * required_ratio) + (0.2 * preferred_ratio)))
+        score = round(min(100, 0.45 * semantic_similarity + 0.45 * skill_match_percentage + 10 * preferred_ratio))
         reason = _reason(record, matching, missing)
-        recommendations.append({**record, "match_score": score, "matching_skills": matching, "missing_skills": missing, "reason": reason})
+        recommendations.append({**record, "match_score": score, "overall_match_percentage": score,
+                                "semantic_similarity": semantic_similarity, "skill_match_percentage": skill_match_percentage,
+                                "matching_skills": matching, "missing_skills": missing,
+                                "missing_preferred_skills": [skill for skill in preferred if _normalize(skill) not in candidate_skills],
+                                "reason": reason})
     return sorted(recommendations, key=lambda item: item["match_score"], reverse=True)
 
 

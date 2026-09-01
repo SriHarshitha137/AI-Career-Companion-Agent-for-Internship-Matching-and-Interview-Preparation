@@ -8,10 +8,19 @@ from sqlalchemy import select
 from dependencies import CurrentUser, DBSession
 from models import Resume
 from schemas import IngestionResponse, MatchRequest, MatchResponse
-from services.internship_index import InternshipIndexError, ingest, search
+from services.internship_index import InternshipIndexError, _dataset, get_internship, ingest, search
 from services.internship_matcher import candidate_data, candidate_query, match
 
 router = APIRouter(prefix="/internships", tags=["Internships"])
+
+
+@router.get("")
+def list_internships() -> list[dict]:
+    """Return the structured, stored internship seed records for browsing."""
+    try:
+        return _dataset()
+    except InternshipIndexError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/ingest", response_model=IngestionResponse)
@@ -34,3 +43,12 @@ def find_matches(payload: MatchRequest, current_user: CurrentUser, db: DBSession
         return MatchResponse(candidate_skills=candidate["skills"], recommendations=match(candidate, retrieved))
     except InternshipIndexError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/{internship_id}")
+def internship_details(internship_id: str) -> dict:
+    """Keep the parameter route after static routes such as /ingest and /match."""
+    record = get_internship(internship_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Internship not found.")
+    return record

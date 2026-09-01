@@ -7,9 +7,12 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
 from crud import create_resume
+from models import Resume
 from dependencies import CurrentUser, DBSession
 from main import ResumeProcessingError, parse_resume
 from schemas import ResumeResponse
@@ -63,3 +66,33 @@ async def upload_resume(
         db.rollback()
         stored_path.unlink(missing_ok=True)
         raise HTTPException(status_code=500, detail="Resume parsed but database storage failed.") from exc
+
+
+@router.get("", response_model=list[ResumeResponse])
+def list_resumes(current_user: CurrentUser, db: DBSession) -> list[ResumeResponse]:
+    """List only the authenticated user's uploaded resumes and parsed results."""
+    return list(db.scalars(select(Resume).where(Resume.user_id == current_user.id).order_by(Resume.uploaded_at.desc())))
+
+
+@router.get("/{resume_id}/download")
+def download_resume(resume_id: int, current_user: CurrentUser, db: DBSession) -> FileResponse:
+    resume = db.scalar(select(Resume).where(Resume.id == resume_id, Resume.user_id == current_user.id))
+    if not resume or not Path(resume.file_path).is_file():
+        raise HTTPException(status_code=404, detail="Resume not found.")
+    return FileResponse(resume.file_path, filename=resume.original_filename)
+
+
+@router.post("/{resume_id}/reparse", response_model=ResumeResponse)
+def reparse_resume(resume_id: int, current_user: CurrentUser, db: DBSession) -> ResumeResponse:
+    """Re-run the original parsing pipeline against a resume the user owns."""
+    resume = db.scalar(select(Resume).where(Resume.id == resume_id, Resume.user_id == current_user.id))
+    if not resume or not Path(resume.file_path).is_file():
+        raise HTTPException(status_code=404, detail="Resume not found.")
+    try:
+        resume.parsed_json = parse_resume(Path(resume.file_path).read_bytes(), resume.original_filename)
+        db.commit(); db.refresh(resume)
+        return resume
+    except ResumeProcessingError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    except OSError as exc:
+        raise HTTPException(status_code=500, detail="Could not read the stored resume.") from exc

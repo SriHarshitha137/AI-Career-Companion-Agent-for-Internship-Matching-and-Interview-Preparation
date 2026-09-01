@@ -76,5 +76,45 @@
     "duration": "3 months",
     "stipend": "₹14,000/month",
     "application_url": "https://example.com/apply/brightpath-frontend"
+  },
+  {
+    "internship_id": "genai-007",
+    "title": "Generative AI Intern",
+    "company": "Synthetic Learning Labs (sample)",
+    "description": "Prototype retrieval-augmented generation features, evaluate prompts, and help build safe AI experiences for learners.",
+    "required_skills": ["Python", "Generative AI", "Prompt Engineering"],
+    "preferred_skills": ["RAG", "LangChain", "Vector Databases"],
+    "eligibility": "Students with AI, machine learning, or software engineering coursework or projects.",
+    "location": "Remote (India)", "work_mode": "Remote", "duration": "6 months", "stipend": "Synthetic sample data", "application_url": null
+  },
+  {
+    "internship_id": "cloud-008",
+    "title": "Cloud & DevOps Intern",
+    "company": "OrbitOps (sample)",
+    "description": "Support cloud deployments, infrastructure automation, monitoring, and reliable developer workflows.",
+    "required_skills": ["Linux", "Git", "Docker"],
+    "preferred_skills": ["AWS", "Kubernetes", "CI/CD"],
+    "eligibility": "Engineering students interested in cloud infrastructure.",
+    "location": "Bengaluru, India", "work_mode": "Hybrid", "duration": "4 months", "stipend": "Synthetic sample data", "application_url": null
+  },
+  {
+    "internship_id": "java-009",
+    "title": "Java Development Intern",
+    "company": "Northstar Systems (sample)",
+    "description": "Build maintainable Java services, work with relational data, and write automated tests with an engineering team.",
+    "required_skills": ["Java", "SQL", "Git"],
+    "preferred_skills": ["Spring Boot", "REST APIs", "JUnit"],
+    "eligibility": "Students pursuing Computer Science or related fields.",
+    "location": "Mumbai, India", "work_mode": "On-site", "duration": "6 months", "stipend": "Synthetic sample data", "application_url": null
+  },
+  {
+    "internship_id": "ds-010",
+    "title": "Data Science Intern",
+    "company": "Forecast Forge (sample)",
+    "description": "Use Python to clean data, build statistical models, and present insights to product and operations teams.",
+    "required_skills": ["Python", "Statistics", "Pandas", "SQL"],
+    "preferred_skills": ["Machine Learning", "scikit-learn", "Data Visualization"],
+    "eligibility": "Students with data science, statistics, or analytics projects.",
+    "location": "Hyderabad, India", "work_mode": "Hybrid", "duration": "5 months", "stipend": "Synthetic sample data", "application_url": null
   }
 ]

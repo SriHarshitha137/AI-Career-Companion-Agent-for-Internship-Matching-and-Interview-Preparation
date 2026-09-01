@@ -282,3 +282,54 @@ Use the same URLs, JSON request bodies, and Bearer token shown above. For resume
 ## Security notes
 
 Passwords are bcrypt hashes; plain passwords are never stored. JWTs are stateless, so logout tells the client to discard its token. A production deployment should use a strong `JWT_SECRET_KEY`, HTTPS, a production database, an email provider for reset links, and a JWT token blacklist if immediate server-side logout/revocation is required.
+
+## InternSphere extension
+
+InternSphere is the UI/product name for this application: **AI-Powered Internship Matching & Career Assistant**. It extends the existing authenticated resume parser rather than replacing it.
+
+### Architecture
+
+- The existing FastAPI + SQLAlchemy application remains the backend and serves the responsive InternSphere frontend at `/`.
+- SQLite remains the actual local database in this repository. New tables are created automatically; additive profile columns are migrated safely at startup without deleting existing data.
+- Internship and product knowledge source documents are stored in `data/`. Their persisted local vector indexes use deterministic feature-hashing embeddings by default. This keeps the assignment runnable locally without new infrastructure. Set `EMBEDDING_PROVIDER=gemini` to use Gemini embeddings instead.
+- Matching combines the manually saved profile with the latest parsed resume. Manual profile values are retained; resume extraction never overwrites them.
+
+### Matching formula
+
+Each result includes distinct, explainable values:
+
+- **Semantic similarity:** vector similarity of the normalized candidate representation and internship document.
+- **Skill match:** 80% required-skill coverage plus 20% preferred-skill coverage.
+- **Overall match:** 45% semantic similarity + 45% skill match + a 10% preferred-skill contribution.
+
+The dataset includes clearly labelled synthetic sample opportunities where no external mentor dataset is available. They are for demonstration only, not live job listings.
+
+### InternSphere APIs
+
+In addition to the preserved authentication, profile, and resume routes:
+
+- `GET /resume`, `GET /resume/{resume_id}/download`
+- `POST /profile/picture`, `GET /profile/picture`
+- `POST /internships/ingest`, `POST /internships/match`
+- `POST /cover-letters/generate`, `GET /cover-letters`, `PUT /cover-letters/{id}`
+- `POST /applications`, `GET /applications`, `PATCH /applications/{id}`, `POST /applications/{id}/withdraw`
+- `POST /assistant/chat`, `GET /assistant/sessions`, `GET /assistant/sessions/{id}`, `DELETE /assistant/sessions/{id}`
+
+Cover-letter generation uses Gemini only on the backend and is grounded in the stored candidate and selected internship data. The product assistant retrieves product knowledge before answering and persists user-scoped chat messages.
+
+### Run and verify
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+$env:JWT_SECRET_KEY="your-stable-long-secret"
+$env:GEMINI_API_KEY="your-gemini-key"
+uvicorn main:app --reload
+```
+
+Open `http://127.0.0.1:8000/` for InternSphere and `http://127.0.0.1:8000/docs` for Swagger. The internship index builds automatically on the first match, or use `POST /internships/ingest`.
+
+Run matching behavior tests:
+
+```powershell
+python -m unittest tests.test_matching -v
+```

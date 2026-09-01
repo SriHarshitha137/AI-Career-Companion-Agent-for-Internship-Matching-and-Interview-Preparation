@@ -11,9 +11,10 @@ from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.exc import SQLAlchemyError
 
-from database import Base, engine
+from database import Base, apply_safe_schema_updates, engine
 from extract_text import TextExtractionError, extract_text
 from llm_extractor import LLMExtractionError, extract_with_gemini
 from merge import merge_resume_data
@@ -46,7 +47,9 @@ async def http_error_handler(_: Request, exc: HTTPException) -> JSONResponse:
 async def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
     return JSONResponse(
         status_code=422,
-        content={"error": {"message": "Invalid request data.", "details": exc.errors()}},
+        # Multipart validation errors can contain raw bytes. Encode them before
+        # returning JSON so invalid uploads never trigger a serialization error.
+        content={"error": {"message": "Invalid request data.", "details": jsonable_encoder(exc.errors())}},
     )
 
 
@@ -58,6 +61,7 @@ def create_database_tables() -> None:
         import models  # noqa: F401
 
         Base.metadata.create_all(bind=engine)
+        apply_safe_schema_updates()
     except SQLAlchemyError as exc:
         raise RuntimeError("Database initialization failed.") from exc
 
@@ -83,11 +87,17 @@ from routers.auth_routes import router as auth_router  # noqa: E402
 from routers.profile_routes import router as profile_router  # noqa: E402
 from routers.resume_routes import router as resume_router  # noqa: E402
 from routers.internship_routes import router as internship_router  # noqa: E402
+from routers.applications_routes import router as applications_router  # noqa: E402
+from routers.assistant_routes import router as assistant_router  # noqa: E402
+from routers.cover_letter_routes import router as cover_letter_router  # noqa: E402
 
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(resume_router)
 app.include_router(internship_router)
+app.include_router(applications_router)
+app.include_router(assistant_router)
+app.include_router(cover_letter_router)
 
 WEB_DIRECTORY = Path("web")
 app.mount("/web", StaticFiles(directory=WEB_DIRECTORY), name="web")
@@ -96,6 +106,15 @@ app.mount("/web", StaticFiles(directory=WEB_DIRECTORY), name="web")
 @app.get("/", include_in_schema=False)
 def web_dashboard() -> FileResponse:
     return FileResponse(WEB_DIRECTORY / "index.html")
+
+
+@app.get("/{frontend_path:path}", include_in_schema=False)
+def frontend_routes(frontend_path: str) -> FileResponse:
+    """Serve the SPA entry point for client-side InternSphere routes."""
+    allowed = {"login", "register", "dashboard", "profile", "resumes", "internships", "matches", "applications", "cover-letter", "ai-assistant"}
+    if frontend_path.strip("/").split("/")[0] in allowed:
+        return FileResponse(WEB_DIRECTORY / "index.html")
+    raise HTTPException(status_code=404, detail="Not found.")
 
 
 @app.post("/parse-resume", summary="Upload a PDF or DOCX resume and receive normalized JSON")

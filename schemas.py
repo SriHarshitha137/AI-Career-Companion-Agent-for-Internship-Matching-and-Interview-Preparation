@@ -167,7 +167,14 @@ class ProfileBase(BaseModel):
     bio: str | None = None
     linkedin: str | None = Field(default=None, max_length=300)
     github: str | None = Field(default=None, max_length=300)
+    portfolio: str | None = Field(default=None, max_length=300)
+    college: str | None = Field(default=None, max_length=200)
+    degree: str | None = Field(default=None, max_length=150)
+    branch: str | None = Field(default=None, max_length=150)
+    graduation_year: int | None = Field(default=None, ge=1950, le=2100)
     skills: list[str] = Field(default_factory=list)
+    technical_skills: list[str] = Field(default_factory=list)
+    soft_skills: list[str] = Field(default_factory=list)
     education: list[dict[str, Any]] = Field(default_factory=list)
     experience: list[dict[str, Any]] = Field(default_factory=list)
 
@@ -183,7 +190,14 @@ class ProfileUpdate(BaseModel):
     bio: str | None = None
     linkedin: str | None = Field(default=None, max_length=300)
     github: str | None = Field(default=None, max_length=300)
+    portfolio: str | None = Field(default=None, max_length=300)
+    college: str | None = Field(default=None, max_length=200)
+    degree: str | None = Field(default=None, max_length=150)
+    branch: str | None = Field(default=None, max_length=150)
+    graduation_year: int | None = Field(default=None, ge=1950, le=2100)
     skills: list[str] | None = None
+    technical_skills: list[str] | None = None
+    soft_skills: list[str] | None = None
     education: list[dict[str, Any]] | None = None
     experience: list[dict[str, Any]] | None = None
 
@@ -195,6 +209,7 @@ class ProfileResponse(ProfileBase):
     user_id: int
     created_at: datetime
     updated_at: datetime
+    profile_picture_path: str | None = None
 
 
 class ResumeResponse(BaseModel):
@@ -221,11 +236,16 @@ class InternshipRecommendation(BaseModel):
     eligibility: str | None = None
     location: str | None = None
     duration: str | None = None
+    work_mode: str | None = None
     stipend: str | None = None
     application_url: str | None = None
     match_score: int
+    overall_match_percentage: int
+    semantic_similarity: int
+    skill_match_percentage: int
     matching_skills: list[str] = Field(default_factory=list)
     missing_skills: list[str] = Field(default_factory=list)
+    missing_preferred_skills: list[str] = Field(default_factory=list)
     reason: str
 
 
@@ -238,3 +258,62 @@ class IngestionResponse(BaseModel):
     indexed: bool
     internships: int
     chunks: int
+
+
+class CoverLetterGenerateRequest(BaseModel):
+    internship_id: str = Field(min_length=1, max_length=100)
+
+
+class CoverLetterUpdateRequest(BaseModel):
+    content: str = Field(min_length=20, max_length=10000)
+
+
+class CoverLetterResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    internship_id: str
+    content: str
+    file_path: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class ApplicationCreateRequest(BaseModel):
+    internship_id: str = Field(min_length=1, max_length=100)
+    resume_id: int | None = None
+    cover_letter_id: int | None = None
+
+
+class ApplicationUpdateRequest(BaseModel):
+    status: str = Field(pattern="^(Applied|Under Review|Shortlisted|Interview|Accepted|Rejected)$")
+
+
+class ApplicationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    internship_id: str
+    resume_id: int | None
+    cover_letter_id: int | None
+    status: str
+    applied_at: datetime
+    updated_at: datetime
+    withdrawn_at: datetime | None
+
+
+class AssistantChatRequest(BaseModel):
+    question: str = Field(min_length=2, max_length=2000)
+    session_id: int | None = None
+
+
+class ChatMessageResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    role: str
+    content: str
+    created_at: datetime
+
+
+class AssistantChatResponse(BaseModel):
+    session_id: int
+    answer: str
+    sources: list[str] = Field(default_factory=list)
