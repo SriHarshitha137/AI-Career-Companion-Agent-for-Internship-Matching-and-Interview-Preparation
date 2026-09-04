@@ -55,7 +55,8 @@ def _embed(texts: list[str]) -> list[list[float]]:
     try:
         from google import genai
 
-        response = genai.Client(api_key=api_key).models.embed_content(model=EMBEDDING_MODEL, contents=texts)
+        client = genai.Client(api_key=api_key)
+        response = client.models.embed_content(model=EMBEDDING_MODEL, contents=texts)
         return [list(item.values) for item in response.embeddings]
     except Exception as exc:
         raise InternshipIndexError("Could not generate Gemini embeddings.") from exc

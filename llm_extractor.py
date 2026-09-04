@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 import os
+import re
 
 from google import genai
 from pydantic import ValidationError
 
+import config  # noqa: F401  # Load .env before Gemini configuration is read.
 from schemas import LLMResumeData
 
 DEFAULT_MODEL = "gemini-3.6-flash"
@@ -15,6 +17,11 @@ DEFAULT_MODEL = "gemini-3.6-flash"
 
 class LLMExtractionError(Exception):
     """Raised for a missing API key, API failure, or repeatedly invalid Gemini JSON."""
+
+
+def _safe_gemini_error(exc: Exception, api_key: str) -> str:
+    detail = str(exc).replace(api_key, "[redacted]")
+    return re.sub(r"AIza[\w-]+", "[redacted]", detail)[:700] or type(exc).__name__
 
 
 def _schema_prompt() -> str:
@@ -51,8 +58,10 @@ def _validate_json(raw_json: str) -> LLMResumeData:
 def extract_with_gemini(resume_text: str) -> LLMResumeData:
     """Ask Gemini once, then retry exactly once if the returned JSON is invalid."""
     api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise LLMExtractionError("GEMINI_API_KEY is not set in the environment.")
+    if not api_key or api_key.startswith("paste_your_"):
+        raise LLMExtractionError(
+            "GEMINI_API_KEY is not configured. Set it in the project-root .env file and restart the server."
+        )
 
     client = genai.Client(api_key=api_key)
     model = os.getenv("GEMINI_MODEL", DEFAULT_MODEL)
@@ -92,4 +101,4 @@ def extract_with_gemini(resume_text: str) -> LLMResumeData:
     except LLMExtractionError:
         raise
     except Exception as exc:
-        raise LLMExtractionError("Gemini API request failed. Check your API key, model, and network.") from exc
+        raise LLMExtractionError(f"Gemini API request failed: {_safe_gemini_error(exc, api_key)}") from exc

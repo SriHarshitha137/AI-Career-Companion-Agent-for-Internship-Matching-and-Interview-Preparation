@@ -8,6 +8,8 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+import config  # noqa: F401  # Load .env before secrets are read.
+
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-this-development-secret-before-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
