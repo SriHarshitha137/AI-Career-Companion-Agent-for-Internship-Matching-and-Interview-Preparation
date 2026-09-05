@@ -1,14 +1,900 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>InternSphere</title><link rel="stylesheet" href="/web/styles.css"></head>
-<body><div id="toast" role="status"></div>
-<section id="auth-view" class="auth-shell"><div class="auth-copy"><p>INTERNSPHERE</p><h1>Internships, aligned with your potential.</h1><span>AI-Powered Internship Matching & Career Assistant</span></div><main class="auth-card"><div id="login-form"><h2>Welcome back</h2><p>Sign in to continue your career journey.</p><form id="login"><input name="email" type="email" placeholder="Email address" required><input name="password" type="password" placeholder="Password" required><button>Sign in</button></form><small>No account? <a href="/register" data-link>Create one</a></small></div><div id="register-form" hidden><h2>Create your account</h2><p>Start building your next opportunity.</p><form id="register"><input name="username" placeholder="Username" required><input name="email" type="email" placeholder="Email address" required><input name="password" type="password" placeholder="Password (8+ characters, letter + number)" required><button>Create account</button></form><small>Already have an account? <a href="/login" data-link>Sign in</a></small></div></main></section>
-<section id="app-view" hidden><aside class="sidebar"><a class="logo" href="/dashboard" data-link>Intern<span>Sphere</span></a><p class="tagline">AI-Powered Internship Matching & Career Assistant</p><nav><a href="/dashboard" data-link data-route="dashboard">◈ Dashboard</a><a href="/profile" data-link data-route="profile">◎ My Profile</a><a href="/resumes" data-link data-route="resumes">▣ My Resumes</a><a href="/internships" data-link data-route="internships">⌕ Internships</a><a href="/matches" data-link data-route="matches">✦ Matches</a><a href="/applications" data-link data-route="applications">▤ Applications</a><a href="/cover-letter" data-link data-route="cover-letter">✎ Cover Letter</a><a href="/ai-assistant" data-link data-route="ai-assistant">◌ AI Assistant</a></nav><div class="sidebar-bottom"><button id="theme-toggle" class="ghost">☾ Theme</button><div id="user-chip" class="user-chip">Loading account…</div><button id="logout" class="ghost danger">Log out</button></div></aside><main class="content">
-<section id="dashboard-page" class="page"><p class="eyebrow">DASHBOARD</p><h1 id="welcome">Welcome back</h1><p class="lead">Your career journey, organized in one place.</p><div class="stat-grid"><article><small>Profile completion</small><strong id="profile-score">0%</strong></article><article><small>Resumes</small><strong id="resume-count">0</strong></article><article><small>Best matches</small><strong id="match-count">—</strong></article><article><small>Applications</small><strong id="application-count">0</strong></article></div><div class="quick"><a href="/resumes" data-link>Upload resume</a><a href="/profile" data-link>Complete profile</a><a href="/matches" data-link>Find internships</a><a href="/cover-letter" data-link>Generate cover letter</a></div><h2>Recommended internships</h2><div id="dashboard-matches" class="card-grid"></div></section>
-<section id="profile-page" class="page" hidden><div class="page-title"><div><p class="eyebrow">MY PROFILE</p><h1>Tell your career story.</h1></div></div><div class="split"><form id="profile-form" class="panel form-grid"><h2>Profile details</h2><div class="avatar-area"><img id="avatar-image" hidden alt="Profile picture"><span id="avatar-initials">IS</span><input id="picture-input" type="file" accept=".png,.jpg,.jpeg,.webp"><button type="button" id="picture-upload">Upload photo</button></div><input name="full_name" placeholder="Full name"><input name="phone" placeholder="Phone"><input name="college" placeholder="College / university"><div class="twos"><input name="degree" placeholder="Degree"><input name="branch" placeholder="Branch"></div><textarea name="bio" placeholder="Professional headline / summary"></textarea><input name="linkedin" placeholder="LinkedIn URL"><input name="github" placeholder="GitHub URL"><input name="portfolio" placeholder="Portfolio URL"><input name="skills" placeholder="Skills, separated by commas"><input name="technical_skills" placeholder="Technical skills, separated by commas"><input name="soft_skills" placeholder="Soft skills, separated by commas"><button>Save profile</button></form><article class="panel"><h2>Profile guide</h2><p>Manual profile information remains yours. InternSphere combines it with your latest parsed resume when finding matches.</p><div id="profile-skills" class="badges"></div></article></div></section>
-<section id="resumes-page" class="page" hidden><p class="eyebrow">MY RESUMES</p><h1>Upload and understand your resume.</h1><div class="split"><form id="upload" class="panel form-grid"><h2>Upload a resume</h2><p>PDF and DOCX are supported. Parsing uses your configured Gemini key.</p><input name="file" type="file" accept=".pdf,.docx" required><button>Upload & parse</button></form><div class="panel"><h2>Saved resumes</h2><div id="resumes" class="list"></div></div></div><div id="parsed-resume" class="panel" hidden></div></section>
-<section id="internships-page" class="page" hidden><p class="eyebrow">INTERNSHIPS</p><h1>Explore opportunities.</h1><div class="filters"><input id="internship-search" placeholder="Search title, company, skills or location"><select id="mode-filter"><option value="">All work modes</option><option>Remote</option><option>Hybrid</option><option>On-site</option></select></div><div id="internship-list" class="card-grid"></div></section>
-<section id="matches-page" class="page" hidden><div class="page-title"><div><p class="eyebrow">YOUR BEST INTERNSHIP MATCHES</p><h1>Where your skills can take you.</h1><p class="lead">Semantic relevance, skill coverage, and gaps are calculated independently.</p></div><button id="match">Refresh matches</button></div><div id="matches-list" class="card-grid"></div></section>
-<section id="applications-page" class="page" hidden><p class="eyebrow">APPLICATIONS</p><h1>Track your applications.</h1><div id="applications-list" class="list"></div></section>
-<section id="cover-letter-page" class="page" hidden><p class="eyebrow">COVER LETTER</p><h1>Write with evidence, not exaggeration.</h1><div class="split"><form id="letter-generate" class="panel form-grid"><h2>Generate a letter</h2><select id="letter-internship" required><option value="">Choose an internship</option></select><button>Generate with Gemini</button></form><div class="panel"><h2>Saved letters</h2><div id="letters-list" class="list"></div></div></div><form id="letter-editor" class="panel form-grid" hidden><h2>Editable cover letter</h2><textarea id="letter-content"></textarea><button>Save changes</button><a id="letter-download" target="_blank">Download text file</a></form></section>
-<section id="ai-assistant-page" class="page" hidden><p class="eyebrow">AI ASSISTANT</p><h1>Ask InternSphere.</h1><div class="chat-layout"><aside id="chat-sessions" class="panel"><button id="new-chat">+ New chat</button><div id="sessions-list" class="list"></div></aside><div class="panel chat-panel"><div id="chat" class="chat"><p class="empty">Ask about matching, applications, resumes, cover letters, or your profile.</p></div><form id="chat-form"><input name="question" placeholder="Ask InternSphere…" required><button>Send</button></form></div></div></section>
-</main></section><script src="/web/app.js"></script></body></html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InternSphere — AI-Powered Internship Matching & Career Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/web/styles.css">
+</head>
+<body>
+  <!-- Toast Notifications -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Confirmation Modal -->
+  <div id="modal-overlay" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <h3 id="modal-title">Confirm Action</h3>
+      <p id="modal-message">Are you sure you want to proceed?</p>
+      <div class="modal-actions">
+        <button id="modal-cancel-btn" class="btn btn-secondary" type="button">Cancel</button>
+        <button id="modal-confirm-btn" class="btn btn-danger" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Internship Detail Modal -->
+  <div id="internship-modal" class="modal-overlay" hidden>
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <div>
+          <span id="im-company" class="badge badge-purple">Company</span>
+          <h2 id="im-title">Internship Title</h2>
+          <p id="im-meta" class="meta-line">Location · Work Mode · Duration · Stipend</p>
+        </div>
+        <button id="im-close-btn" class="icon-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-section">
+          <h4>Role Description</h4>
+          <p id="im-description"></p>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-section">
+            <h4>Required Skills</h4>
+            <div id="im-required-skills" class="tag-cloud"></div>
+          </div>
+          <div class="detail-section">
+            <h4>Preferred Skills</h4>
+            <div id="im-preferred-skills" class="tag-cloud"></div>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-section">
+            <h4>Education Requirements</h4>
+            <p id="im-education"></p>
+          </div>
+          <div class="detail-section">
+            <h4>Experience Requirements</h4>
+            <p id="im-experience"></p>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>Application Deadline</h4>
+          <p id="im-deadline"></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="im-skillgap-btn" class="btn btn-secondary">Analyze Skill Gap</button>
+        <button id="im-letter-btn" class="btn btn-secondary">Generate Cover Letter</button>
+        <button id="im-apply-btn" class="btn btn-primary">Apply Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 1. UNAUTHENTICATED AUTH VIEW (Login / Register ONLY)           -->
+  <!-- ============================================================== -->
+  <section id="auth-view" class="auth-view-container">
+    <div class="auth-left-hero">
+      <div class="auth-brand-badge">
+        <span class="pulse-dot"></span>
+        <span>Next-Gen Career Intelligence</span>
+      </div>
+      <h1 class="hero-logo">INTERN<span class="gradient-text">SPHERE</span></h1>
+      <p class="hero-tagline">AI-Powered Internship Matching & Career Assistant</p>
+      <p class="hero-subtext">
+        Bridging the gap between ambitious students and high-impact internships.
+        Upload your resume for instant AI analysis, find precision semantic matches,
+        uncover skill gaps, and craft grounded application materials in seconds.
+      </p>
+      <div class="hero-features-list">
+        <div class="feature-item">
+          <div class="feature-icon">✦</div>
+          <div>
+            <strong>Semantic RAG Matching</strong>
+            <span>Multi-factor ranking comparing projects, skills, and background</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">▣</div>
+          <div>
+            <strong>Deep Resume Parser</strong>
+            <span>Hybrid text extraction and Gemini structured candidate profiling</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">✎</div>
+          <div>
+            <strong>Grounded Cover Letters</strong>
+            <span>Tailored, hallucination-free letters ready to edit and export</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-right-form">
+      <div class="auth-card-wrapper">
+        <div class="auth-tabs">
+          <button id="tab-login" class="auth-tab active" type="button">Sign In</button>
+          <button id="tab-register" class="auth-tab" type="button">Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-box" class="auth-form-box">
+          <div class="form-header">
+            <h2>Welcome Back</h2>
+            <p>Enter your credentials to access your InternSphere dashboard.</p>
+          </div>
+          <form id="login-form" class="auth-form">
+            <div class="form-group">
+              <label for="login-email">Email Address</label>
+              <input id="login-email" name="email" type="email" placeholder="name@example.com" required autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label for="login-password">Password</label>
+              <input id="login-password" name="password" type="password" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+            <button id="login-submit-btn" class="btn btn-primary btn-block" type="submit">Sign In to InternSphere</button>
+          </form>
+          <div class="auth-switch-note">
+            <span>Don't have an account?</span>
+            <a href="/register" data-link>Create one now &rarr;</a>
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-box" class="auth-form-box" hidden>
+          <div class="form-header">
+            <h2>Start Your Career Journey</h2>
+            <p>Join InternSphere to unlock AI-powered internship matching.</p>
+          </div>
+          <form id="register-form" class="auth-form">
+            <div class="form-group">
+              <label for="reg-username">Username</label>
+              <input id="reg-username" name="username" type="text" placeholder="harshitha_b" required pattern="^[A-Za-z0-9_.-]+$" autocomplete="username">
+            </div>
+            <div class="form-group">
+              <label for="reg-email">Email Address</label>
+              <input id="reg-email" name="email" type="email" placeholder="harshitha@example.com" required autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label for="reg-password">Password</label>
+              <input id="reg-password" name="password" type="password" placeholder="Min. 8 chars (1 letter + 1 number)" required autocomplete="new-password">
+              <span class="field-hint">Must contain at least 8 characters, including letters and numbers.</span>
+            </div>
+            <button id="register-submit-btn" class="btn btn-primary btn-block" type="submit">Create Account</button>
+          </form>
+          <div class="auth-switch-note">
+            <span>Already have an account?</span>
+            <a href="/login" data-link>Sign in here &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- 2. AUTHENTICATED APPLICATION SHELL (Persistent Layout)          -->
+  <!-- ============================================================== -->
+  <section id="app-view" class="app-view-container" hidden>
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+    <!-- Mobile Top Navigation Header -->
+    <header class="mobile-navbar">
+      <button id="mobile-menu-btn" class="icon-btn" aria-label="Open Navigation">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <div class="brand-title">INTERN<span>SPHERE</span></div>
+      <button id="mobile-theme-btn" class="icon-btn theme-toggle-btn" aria-label="Toggle Theme">☾</button>
+    </header>
+
+    <!-- Persistent Left Sidebar -->
+    <aside id="app-sidebar" class="app-sidebar">
+      <div class="sidebar-header">
+        <a class="sidebar-brand" href="/dashboard" data-link>
+          <div class="brand-icon-shield">IS</div>
+          <div class="brand-text-block">
+            <span class="brand-name">INTERN<span>SPHERE</span></span>
+            <span class="brand-sub">Career Assistant</span>
+          </div>
+        </a>
+        <button id="sidebar-collapse-btn" class="collapse-toggle-btn" title="Toggle Sidebar" aria-label="Toggle Sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="/dashboard" class="nav-item" data-link data-route="dashboard" title="Dashboard">
+          <span class="nav-icon">◈</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="/profile" class="nav-item" data-link data-route="profile" title="My Profile">
+          <span class="nav-icon">◎</span>
+          <span class="nav-label">My Profile</span>
+        </a>
+        <a href="/resumes" class="nav-item" data-link data-route="resumes" title="My Resumes">
+          <span class="nav-icon">▣</span>
+          <span class="nav-label">My Resumes</span>
+        </a>
+        <a href="/matches" class="nav-item" data-link data-route="matches" title="Matches">
+          <span class="nav-icon">✦</span>
+          <span class="nav-label">Matches</span>
+        </a>
+        <a href="/skill-gap" class="nav-item" data-link data-route="skill-gap" title="Skill Gap">
+          <span class="nav-icon">◬</span>
+          <span class="nav-label">Skill Gap</span>
+        </a>
+        <a href="/applications" class="nav-item" data-link data-route="applications" title="Applications">
+          <span class="nav-icon">▤</span>
+          <span class="nav-label">Applications</span>
+        </a>
+        <a href="/cover-letters" class="nav-item" data-link data-route="cover-letters" title="Cover Letters">
+          <span class="nav-icon">✎</span>
+          <span class="nav-label">Cover Letters</span>
+        </a>
+        <a href="/assistant" class="nav-item" data-link data-route="assistant" title="AI Assistant">
+          <span class="nav-icon">◌</span>
+          <span class="nav-label">AI Assistant</span>
+          <span class="nav-badge">RAG</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="desktop-theme-btn" class="theme-toggle-btn nav-action-btn" type="button">
+          <span class="theme-icon">☾</span>
+          <span class="nav-label theme-label">Dark Mode</span>
+        </button>
+        <div class="user-profile-badge">
+          <div id="user-badge-avatar" class="badge-avatar">IS</div>
+          <div class="user-badge-info">
+            <span id="user-badge-name" class="badge-name">User</span>
+            <span id="user-badge-email" class="badge-email">user@internsphere.ai</span>
+          </div>
+        </div>
+        <button id="logout-btn" class="logout-btn nav-action-btn" type="button" title="Sign Out">
+          <span class="nav-icon">⎋</span>
+          <span class="nav-label">Log Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Stage: Exactly ONE page view rendered at a time -->
+    <main id="main-content" class="main-content-area">
+
+      <!-- ========================================================== -->
+      <!-- VIEW 1: DASHBOARD                                          -->
+      <!-- ========================================================== -->
+      <section id="dashboard-page" class="view-page">
+        <div class="view-header">
+          <div class="view-title-group">
+            <span class="view-eyebrow">OVERVIEW & STATUS</span>
+            <h1 id="dash-welcome">Welcome back</h1>
+            <p class="view-subtitle">Your personalized AI internship command center.</p>
+          </div>
+          <div class="view-actions">
+            <a href="/matches" class="btn btn-primary" data-link>✦ Find Best Matches</a>
+          </div>
+        </div>
+
+        <!-- Metric Stat Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon-wrapper purple">◎</div>
+            <div class="stat-data">
+              <span class="stat-label">Profile Completion</span>
+              <div class="stat-metric-row">
+                <strong id="dash-profile-pct">0%</strong>
+                <div class="progress-bar-tiny"><div id="dash-profile-bar" class="progress-bar-fill" style="width:0%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper blue">▣</div>
+            <div class="stat-data">
+              <span class="stat-label">Uploaded Resumes</span>
+              <strong id="dash-resume-count">0</strong>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper amber">✦</div>
+            <div class="stat-data">
+              <span class="stat-label">Internship Matches</span>
+              <strong id="dash-matches-count">—</strong>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper green">▤</div>
+            <div class="stat-data">
+              <span class="stat-label">Applications</span>
+              <strong id="dash-applications-count">0</strong>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper teal">✎</div>
+            <div class="stat-data">
+              <span class="stat-label">Saved Cover Letters</span>
+              <strong id="dash-letters-count">0</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="section-container">
+          <h3 class="section-title">Quick Actions</h3>
+          <div class="quick-actions-bar">
+            <a href="/resumes" class="quick-btn" data-link>
+              <span class="qb-icon">▣</span>
+              <span>Upload Resume</span>
+            </a>
+            <a href="/matches" class="quick-btn" data-link>
+              <span class="qb-icon">✦</span>
+              <span>Find Best Matches</span>
+            </a>
+            <a href="/profile" class="quick-btn" data-link>
+              <span class="qb-icon">◎</span>
+              <span>Complete Profile</span>
+            </a>
+            <a href="/applications" class="quick-btn" data-link>
+              <span class="qb-icon">▤</span>
+              <span>View Applications</span>
+            </a>
+            <a href="/cover-letters" class="quick-btn" data-link>
+              <span class="qb-icon">✎</span>
+              <span>Create Cover Letter</span>
+            </a>
+            <a href="/assistant" class="quick-btn" data-link>
+              <span class="qb-icon">◌</span>
+              <span>Ask AI Assistant</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Recommended Matches Preview -->
+        <div class="section-container">
+          <div class="section-header-row">
+            <h3 class="section-title">Top Recommended Internships</h3>
+            <a href="/matches" class="text-link" data-link>View all matches &rarr;</a>
+          </div>
+          <div id="dash-matches-preview" class="cards-grid">
+            <div class="loading-state">
+              <div class="spinner"></div>
+              <span>Finding personalized matches...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- VIEW 2: MY PROFILE                                         -->
+      <!-- ========================================================== -->
+      <section id="profile-page" class="view-page" hidden>
+        <div class="view-header">
+          <div class="view-title-group">
+            <span class="view-eyebrow">CANDIDATE INFORMATION</span>
+            <h1>My Profile</h1>
+            <p class="view-subtitle">Manage your personal details, academic background, and professional qualifications.</p>
+          </div>
+        </div>
+
+        <div class="profile-layout-grid">
+          <!-- Left: Profile Picture Card -->
+          <div class="card photo-card">
+            <h3>Profile Photo</h3>
+            <p class="card-hint">Upload a clear professional photo. Recommended square PNG, JPG, or WEBP.</p>
+
+            <div class="large-avatar-frame">
+              <img id="profile-picture-preview" alt="Profile Picture" class="large-avatar-img" hidden>
+              <div id="profile-initials-fallback" class="large-avatar-fallback">IS</div>
+            </div>
+
+            <div class="photo-controls">
+              <input id="profile-photo-input" type="file" accept=".png,.jpg,.jpeg,.webp" hidden>
+              <button id="profile-photo-choose-btn" class="btn btn-secondary btn-sm" type="button">Select Photo</button>
+              <button id="profile-photo-upload-btn" class="btn btn-primary btn-sm" type="button" disabled>Save Photo</button>
+              <button id="profile-photo-remove-btn" class="btn btn-danger-outline btn-sm" type="button" hidden>Remove</button>
+            </div>
+            <span id="photo-upload-status" class="status-subtext"></span>
+
+            <hr class="card-divider">
+            <h4>Live Skills Overview</h4>
+            <div id="profile-skills-tags" class="tag-cloud">
+              <span class="text-muted-sm">No skills added yet.</span>
+            </div>
+          </div>
+
+          <!-- Right: Comprehensive Details Form -->
+          <div class="card form-card">
+            <form id="profile-details-form">
+              <div class="form-section-block">
+                <h3 class="form-block-title">Personal Information</h3>
+                <div class="form-row two-col">
+                  <div class="form-group">
+                    <label for="prof-full-name">Full Name</label>
+                    <input id="prof-full-name" name="full_name" type="text" placeholder="Botsa SriHarshitha">
+                  </div>
+                  <div class="form-group">
+                    <label for="prof-email">Email Address</label>
+                    <input id="prof-email" name="email" type="email" disabled placeholder="user@example.com">
+                  </div>
+                </div>
+                <div class="form-row two-col">
+                  <div class="form-group">
+                    <label for="prof-phone">Phone Number</label>
+                    <input id="prof-phone" name="phone" type="tel" placeholder="+91 9676039334">
+                  </div>
+                  <div class="form-group">
+                    <label for="prof-location">Location</label>
+                    <input id="prof-location" name="location" type="text" placeholder="Visakhapatnam, India">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section-block">
+                <h3 class="form-block-title">Education</h3>
+                <div class="form-group">
+                  <label for="prof-college">College / University</label>
+                  <input id="prof-college" name="college" type="text" placeholder="Anil Neerukonda Institute of Technology & Sciences">
+                </div>
+                <div class="form-row three-col">
+                  <div class="form-group">
+                    <label for="prof-degree">Degree</label>
+                    <input id="prof-degree" name="degree" type="text" placeholder="B.Tech">
+                  </div>
+                  <div class="form-group">
+                    <label for="prof-branch">Branch / Major</label>
+                    <input id="prof-branch" name="branch" type="text" placeholder="Computer Science & Engineering">
+                  </div>
+                  <div class="form-group">
+                    <label for="prof-grad-year">Graduation Year</label>
+                    <input id="prof-grad-year" name="graduation_year" type="number" min="1950" max="2100" placeholder="2028">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="prof-cgpa">CGPA / Grade</label>
+                  <input id="prof-cgpa" name="cgpa" type="text" placeholder="9.17 / 10.0">
+                </div>
+              </div>
+
+              <div class="form-section-block">
+                <h3 class="form-block-title">Professional Background</h3>
+                <div class="form-group">
+                  <label for="prof-bio">Professional Summary</label>
+                  <textarea id="prof-bio" name="bio" rows="4" placeholder="Computer Science undergraduate with a 9.17 CGPA and strong fundamentals in DSA, REST APIs, and distributed systems..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="prof-tech-skills">Technical Skills (comma-separated)</label>
+                  <input id="prof-tech-skills" name="technical_skills" type="text" placeholder="Java, Python, C++, React, Node.js, PostgreSQL, Docker, Git">
+                </div>
+                <div class="form-group">
+                  <label for="prof-soft-skills">Soft Skills (comma-separated)</label>
+                  <input id="prof-soft-skills" name="soft_skills" type="text" placeholder="Problem Solving, Abstract Thinking, Agile/Scrum, Collaboration">
+                </div>
+                <div class="form-group">
+                  <label for="prof-certifications">Certifications (comma-separated or one per line)</label>
+                  <input id="prof-certifications" name="certifications_input" type="text" placeholder="SQL and Relational Databases (IBM), Full Stack Web Development (APNA)">
+                </div>
+                <div class="form-group">
+                  <label for="prof-achievements">Achievements (comma-separated or one per line)</label>
+                  <input id="prof-achievements" name="achievements_input" type="text" placeholder="Solved 180+ DSA questions, Global Rank 443 GirlScript Summer of Code">
+                </div>
+              </div>
+
+              <div class="form-section-block">
+                <h3 class="form-block-title">Online Profiles & Links</h3>
+                <div class="form-row three-col">
+                  <div class="form-group">
+                    <label for="prof-linkedin">LinkedIn URL</label>
+                    <input id="prof-linkedin" name="linkedin" type="url" placeholder="https://linkedin.com/in/sriharshitha-botsa">
+                  </div>
+                  <div class="form-group">
+                    <label for="prof-github">GitHub URL</label>
+                    <input id="prof-github" name="github" type="url" placeholder="https://github.com/SriHarshitha137">
+                  </div>
+                  <div class="form-group">
+                    <label for="prof-portfolio">Portfolio / Web</label>
+                    <input id="prof-portfolio" name="portfolio" type="url" placeholder="https://gig-ledger-income-tracking-tax-simp.vercel.app">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions-row">
+                <button id="profile-save-btn" class="btn btn-primary" type="submit">Save Profile Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- VIEW 3: MY RESUMES                                         -->
+      <!-- ========================================================== -->
+      <section id="resumes-page" class="view-page" hidden>
+        <div class="view-header">
+          <div class="view-title-group">
+            <span class="view-eyebrow">DOCUMENT INTELLIGENCE</span>
+            <h1>My Resumes</h1>
+            <p class="view-subtitle">Upload your resume in PDF or DOCX format for instant structured AI parsing.</p>
+          </div>
+        </div>
+
+        <div class="resumes-split-grid">
+          <!-- Upload Form -->
+          <div class="card">
+            <h3>Upload New Resume</h3>
+            <p class="card-hint">Supported formats: PDF, DOCX (Max 5 MB). Parsing uses the hybrid Gemini pipeline.</p>
+            <form id="resume-upload-form" class="upload-dropzone-form">
+              <div id="dropzone" class="dropzone-box">
+                <div class="dropzone-icon">↑</div>
+                <p>Drag & drop your resume file here or <span class="browse-link">browse</span></p>
+                <input id="resume-file-input" name="file" type="file" accept=".pdf,.docx" required>
+                <span id="selected-file-name" class="selected-file-badge" hidden></span>
+              </div>
+              <button id="resume-upload-btn" class="btn btn-primary btn-block" type="submit">
+                <span>Upload & Parse with AI</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Saved Resumes List -->
+          <div class="card">
+            <h3>Uploaded Resumes</h3>
+            <div id="resumes-list-container" class="resumes-list">
+              <div class="loading-state">
+                <div class="spinner"></div>
+                <span>Loading your resumes...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Beautiful Structured Resume Display (NO RAW JSON) -->
+        <div id="resume-analysis-container" class="resume-analysis-wrapper" hidden>
+          <div class="analysis-card">
+            <div class="analysis-header">
+              <div class="analysis-badge">RESUME ANALYSIS</div>
+              <h2 id="parsed-candidate-name">Candidate Name</h2>
+              <div id="parsed-contact-chips" class="contact-chips-row"></div>
+            </div>
+
+            <!-- Professional Summary -->
+            <div class="analysis-section">
+              <h3 class="analysis-section-title">Professional Summary</h3>
+              <p id="parsed-summary" class="analysis-prose"></p>
+            </div>
+
+            <!-- Technical & Soft Skills -->
+            <div class="analysis-section">
+              <h3 class="analysis-section-title">Skills & Technologies</h3>
+              <div class="skills-categorized">
+                <div class="skill-category">
+                  <span class="cat-label">Technical Skills</span>
+                  <div id="parsed-tech-skills" class="tag-cloud"></div>
+                </div>
+                <div class="skill-category">
+                  <span class="cat-label">Soft & Professional Skills</span>
+                  <div id="parsed-soft-skills" class="tag-cloud"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Experience -->
+            <div class="analysis-section">
+              <h3 class="analysis-section-title">Experience & Internships</h3>
+              <div id="parsed-experience-list" class="experience-timeline"></div>
+            </div>
+
+            <!-- Projects -->
+            <div class="analysis-section">
+              <h3 class="analysis-section-title">Featured Projects</h3>
+              <div id="parsed-projects-list" class="projects-grid"></div>
+            </div>
+
+            <!-- Education -->
+            <div class="analysis-section">
+              <h3 class="analysis-section-title">Education</h3>
+              <div id="parsed-education-list" class="education-grid"></div>
+            </div>
+
+            <!-- Certifications & Achievements -->
+            <div class="analysis-two-col">
+              <div class="analysis-section">
+                <h3 class="analysis-section-title">Certifications</h3>
+                <ul id="parsed-certifications-list" class="styled-list"></ul>
+              </div>
+              <div class="analysis-section">
+                <h3 class="analysis-section-title">Achievements</h3>
+                <ul id="parsed-achievements-list" class="styled-list"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- VIEW 4: MATCHES                                            -->
+      <!-- ========================================================== -->
+      <section id="matches-page" class="view-page" hidden>
+        <div class="view-header">
+          <div class="view-title-group">
+            <span class="view-eyebrow">SEMANTIC RECOMMENDATIONS</span>
+            <h1>Internship Matches</h1>
+            <p class="view-subtitle">Ranked by hybrid RAG vector similarity, core skill coverage, and candidate profile alignment.</p>
+          </div>
+          <div class="view-actions">
+            <button id="refresh-matches-btn" class="btn btn-secondary">
+              <span class="btn-icon">↻</span> Refresh Matches
+            </button>
+          </div>
+        </div>
+
+        <div id="matches-cards-container" class="cards-grid">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <span>Calculating semantic match vectors...</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- VIEW 5: SKILL GAP ANALYSIS                                 -->
+      <!-- ========================================================== -->
+      <section id="skill-gap-page" class="view-page" hidden>
+        <div class="view-header">
+          <div class="view-title-group">
+            <span class="view-eyebrow">SKILL INTELLIGENCE</span>
+            <h1>Skill Gap Analysis</h1>
+            <p class="view-subtitle">Compare your structured skills against target internship requirements.</p>
+          </div>
+        </div>
+
+        <div class="card skill-gap-selector-card">
+          <label for="skill-gap-select">Select an Internship to Analyze:</label>
+          <select id="skill-gap-select" class="form-select">
+            <option value="">Choose an internship listing...</option>
+          </select>
+        </div>
+
+        <div id="skill-gap-details" class="skill-gap-container" hidden>
+          <!-- Top Overview Banner -->
+          <div class="card gap-hero-card">
+            <div class="gap-hero-left">
+              <span id="gap-company" class="badge badge-purple">Company</span>
+              <h2 id="gap-role-title">Role Title</h2>
+              <p id="gap-location-meta" class="meta-line">Location · Work Mode · Duration</p>
+            </div>
+            <div class="gap-hero-right">
+              <div class="match-score-badge-large">
+                <span class="label">Overall Alignment</span>
+                <strong id="gap-overall-pct">0%</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comparison Metrics -->
+          <div class="gap-metrics-grid">
+            <div class="card metric-box">
+              <span class="metric-title">Skill Match Score</span>
+              <strong id="gap-skill-pct" class="metric-num">0%</strong>
+              <div class="progress-bar-small"><div id="gap-skill-bar" class="progress-bar-fill purple" style="width:0%"></div></div>
+              <small class="metric-sub">Coverage of required and preferred skills</small>
+            </div>
+
+            <div class="card metric-box">
+              <span class="metric-title">Semantic Context Score</span>
+              <strong id="gap-semantic-pct" class="metric-num">0%</strong>
+              <div class="progress-bar-small"><div id="gap-semantic-bar" class="progress-bar-fill teal" style="width:0%"></div></div>
+              <small class="metric-sub">Vector similarity of projects, experience, & summary</small>
+            </div>
+          </div>
+
+          <!-- Skills Categorization Breakdown -->
+          <div class="gap-breakdown-grid">
+            <div class="card gap-list-card matched-card">
+              <div class="gap-card-header">
+                <div class="gap-status-icon green">✓</div>
+                <h3>Matched Skills (<span id="gap-matched-count">0</span>)</h3>
+              </div>
+              <p class="card-hint">Skills in your profile/resume that align with this role.</p>
+              <div id="gap-matched-tags" class="tag-cloud"></div>
+            </div>
+
+            <div class="card gap-list-card missing-card">
+              <div class="gap-card-header">
+                <div class="gap-status-icon red">✕</div>
+                <h3>Missing Required Skills (<span id="gap-missing-count">0</span>)</h3>
+              </div>
+              <p class="card-hint">Essential prerequisites for this role you haven't listed.</p>
+              <div id="gap-missing-tags" class="tag-cloud"></div>
+            </div>
+
+            <div class="card gap-list-card preferred-card">
+              <div class="gap-card-header">
+                <div class="gap-status-icon amber">○</div>
+                <h3>Missing Preferred Skills (<span id="gap-preferred-missing-count">0</span>)</h3>
+              </div>
+              <p class="card-hint">Bonus skills that would give you a competitive edge.</p>
+              <div id="gap-preferred-tags" class="tag-cloud"></div>
+            </div>
+          </div>
+
+          <!-- Action Recommendation -->
+          <div class="card gap-actions-card">
+            <div>
+              <h4>Ready to apply or generate a customized letter?</h4>
+              <p id="gap-reason-text" class="reason-prose"></p>
+            </div>
+            <div class="gap-btn-row">
+              <button id="gap-generate-letter-btn" class="btn btn-secondary">Generate Cover Letter</button>
+              <button id="gap-apply-btn" class="btn btn-primary">Apply Now</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- VIEW 6: APPLICATIONS                                       -->
+      <!-- ========================================================== -->
+      <section id="applications-page" class="view-page" hidden>
+        <div class="view-header">
+          <div class="view-title-group">
+            <span class="view-eyebrow">OPPORTUNITY TRACKING</span>
+            <h1>My Applications</h1>
+            <p class="view-subtitle">Monitor application stages, track status history, or withdraw applications.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div id="applications-container" class="applications-table-wrapper">
+            <div class="loading-state">
+              <div class="spinner"></div>
+              <span>Loading applications...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- VIEW 7: COVER LETTERS                                      -->
+      <!-- ========================================================== -->
+      <section id="cover-letters-page" class="view-page" hidden>
+        <div class="view-header">
+          <div class="view-title-group">
+            <span class="view-eyebrow">DOCUMENT GENERATOR</span>
+            <h1>Cover Letters</h1>
+            <p class="view-subtitle">Generate grounded, professional cover letters using Gemini without hallucinations.</p>
+          </div>
+        </div>
+
+        <div class="cover-letters-split">
+          <!-- Left: Generator -->
+          <div class="card">
+            <h3>Generate a Cover Letter</h3>
+            <p class="card-hint">Select a target internship. Gemini generates a letter using only verified candidate and internship facts.</p>
+            <form id="letter-generate-form" class="form-grid">
+              <div class="form-group">
+                <label for="letter-target-internship">Target Internship</label>
+                <select id="letter-target-internship" class="form-select" required>
+                  <option value="">Choose an internship...</option>
+                </select>
+              </div>
+              <button id="generate-letter-submit-btn" class="btn btn-primary btn-block" type="submit">
+                <span>✦ Generate with Gemini</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Right: Saved Letters -->
+          <div class="card">
+            <h3>Saved Cover Letters</h3>
+            <div id="saved-letters-container" class="saved-letters-list">
+              <div class="loading-state">
+                <div class="spinner"></div>
+                <span>Loading saved letters...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Large Document-Style Editor (550px–700px height) -->
+        <div id="letter-editor-container" class="card document-editor-card" hidden>
+          <div class="editor-header-bar">
+            <div>
+              <span class="doc-badge">DOCUMENT EDITOR</span>
+              <h3 id="editing-letter-title">Cover Letter</h3>
+            </div>
+            <div class="editor-actions-group">
+              <button id="editor-copy-btn" class="btn btn-secondary btn-sm" type="button">Copy Text</button>
+              <button id="editor-regenerate-btn" class="btn btn-secondary btn-sm" type="button">Regenerate</button>
+              <button id="editor-download-txt-btn" class="btn btn-secondary btn-sm" type="button">Download TXT</button>
+              <button id="editor-download-pdf-btn" class="btn btn-primary btn-sm" type="button">Download PDF</button>
+            </div>
+          </div>
+
+          <form id="letter-save-form" class="document-form">
+            <textarea id="letter-textarea" class="document-textarea" placeholder="Your cover letter content will appear here..."></textarea>
+            <div class="editor-footer-bar">
+              <span id="letter-save-status" class="save-status-text"></span>
+              <button id="letter-save-btn" class="btn btn-primary" type="submit">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- VIEW 8: AI ASSISTANT                                       -->
+      <!-- ========================================================== -->
+      <section id="assistant-page" class="view-page" hidden>
+        <div class="view-header">
+          <div class="view-title-group">
+            <span class="view-eyebrow">PRODUCT KNOWLEDGE ASSISTANT</span>
+            <h1>InternSphere Assistant</h1>
+            <p class="view-subtitle">Ask questions about matching, resume parsing, skill gaps, cover letters, and platform features.</p>
+          </div>
+        </div>
+
+        <div class="chat-workspace-grid">
+          <!-- Left: Sessions Sidebar -->
+          <aside class="chat-history-sidebar card">
+            <button id="new-chat-btn" class="btn btn-primary btn-block" type="button">
+              <span>+ New Chat</span>
+            </button>
+            <h4 class="history-title">Recent Chats</h4>
+            <div id="chat-sessions-list" class="sessions-scroll-list">
+              <div class="loading-state">
+                <div class="spinner"></div>
+                <span>Loading chats...</span>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Right: Interactive Chat Panel -->
+          <div class="chat-main-card card">
+            <div class="chat-panel-header">
+              <div class="agent-avatar-badge">IS</div>
+              <div>
+                <strong id="active-chat-title">New Conversation</strong>
+                <span class="agent-status-indicator"><span class="green-dot"></span> Active & Grounded in Product RAG</span>
+              </div>
+            </div>
+
+            <!-- Messages Scroll Area -->
+            <div id="chat-messages-container" class="chat-messages-scroll">
+              <div class="chat-welcome-state">
+                <div class="cw-icon">◌</div>
+                <h3>Welcome to InternSphere AI</h3>
+                <p>Ask anything about how matching works, your skill gaps, resume extraction, or applications.</p>
+                <div class="suggestion-chips">
+                  <button class="suggest-chip" type="button">How does internship matching work?</button>
+                  <button class="suggest-chip" type="button">What is skill gap analysis?</button>
+                  <button class="suggest-chip" type="button">How does resume parsing work?</button>
+                  <button class="suggest-chip" type="button">What does my match percentage mean?</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chat Input Bar -->
+            <form id="assistant-chat-form" class="chat-input-bar">
+              <input id="chat-input" name="question" type="text" placeholder="Ask InternSphere anything..." autocomplete="off" required>
+              <button id="chat-send-btn" class="btn btn-primary" type="submit">
+                <span>Send</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </section>
+
+  <!-- Application Logic -->
+  <script src="/web/app.js"></script>
+</body>
+</html>

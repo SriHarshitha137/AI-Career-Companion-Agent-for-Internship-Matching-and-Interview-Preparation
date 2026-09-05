@@ -12,7 +12,8 @@ from pydantic import ValidationError
 import config  # noqa: F401  # Load .env before Gemini configuration is read.
 from schemas import LLMResumeData
 
-DEFAULT_MODEL = "gemini-3.6-flash"
+DEFAULT_MODEL = "gemini-3.5-flash-lite"
+FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-flash-latest"]
 
 
 class LLMExtractionError(Exception):
@@ -42,6 +43,15 @@ unknown lists. Do not invent information.
 }"""
 
 
+def _clean_json_text(text: str) -> str:
+    """Strip markdown code fences and isolate the JSON object."""
+    cleaned = (text or "").strip()
+    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s*```$", "", cleaned)
+    match = re.search(r"\{[\s\S]*\}", cleaned)
+    return match.group(0) if match else cleaned
+
+
 def _response_text(response: object) -> str:
     """Read Gemini's generated text, checking that it is not empty."""
     text = (getattr(response, "text", None) or "").strip()
@@ -52,11 +62,20 @@ def _response_text(response: object) -> str:
 
 def _validate_json(raw_json: str) -> LLMResumeData:
     """Decode JSON first, then validate its types and required keys with Pydantic."""
-    return LLMResumeData.model_validate(json.loads(raw_json))
+    cleaned = _clean_json_text(raw_json)
+    data = json.loads(cleaned)
+    # Ensure nested list items have dictionaries if needed
+    for key in ("education", "work_experience", "projects", "certifications", "internships", "publications"):
+        if isinstance(data.get(key), list):
+            data[key] = [item if isinstance(item, dict) else {"name": str(item)} for item in data[key]]
+    for key in ("technical_skills", "soft_skills", "achievements", "languages"):
+        if isinstance(data.get(key), list):
+            data[key] = [str(item) for item in data[key] if item]
+    return LLMResumeData.model_validate(data)
 
 
 def extract_with_gemini(resume_text: str) -> LLMResumeData:
-    """Ask Gemini once, then retry exactly once if the returned JSON is invalid."""
+    """Ask Gemini with automatic model fallback and resilient JSON extraction."""
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key or api_key.startswith("paste_your_"):
         raise LLMExtractionError(
@@ -64,41 +83,35 @@ def extract_with_gemini(resume_text: str) -> LLMResumeData:
         )
 
     client = genai.Client(api_key=api_key)
-    model = os.getenv("GEMINI_MODEL", DEFAULT_MODEL)
+    configured_model = os.getenv("GEMINI_MODEL", DEFAULT_MODEL)
+    models = [configured_model] + [m for m in FALLBACK_MODELS if m != configured_model]
+
     initial_instruction = (
         "You are a precise resume parser. Extract only facts present in the resume.\n\n"
         + _schema_prompt()
         + "\n\nRESUME TEXT:\n"
-        + resume_text
+        + resume_text[:15000]
     )
-    try:
-        first_response = client.models.generate_content(
-            model=model,
-            contents=initial_instruction,
-        )
-        first_text = _response_text(first_response)
+
+    last_error: Exception | None = None
+    for model in models:
         try:
-            return _validate_json(first_text)
-        except (json.JSONDecodeError, ValidationError) as validation_error:
-            # A single, stricter repair request fulfils the controlled retry requirement.
-            retry_instruction = (
-                "Your previous response failed strict JSON/Pydantic validation. Return a corrected "
-                "answer now. Output ONLY one JSON object, no prose or fences. Include every key "
-                "from the required schema and no extra keys.\nValidation error: "
-                f"{validation_error}\n\nRequired schema:\n{_schema_prompt()}\n\n"
-                f"Resume text:\n{resume_text}\n\nPrevious invalid output:\n{first_text}"
-            )
-            retry_response = client.models.generate_content(
+            response = client.models.generate_content(
                 model=model,
-                contents=retry_instruction,
+                contents=initial_instruction,
             )
+            raw_text = _response_text(response)
             try:
-                return _validate_json(_response_text(retry_response))
-            except (json.JSONDecodeError, ValidationError) as retry_error:
-                raise LLMExtractionError(
-                    "Gemini returned JSON that did not match the required schema after one retry."
-                ) from retry_error
-    except LLMExtractionError:
-        raise
-    except Exception as exc:
-        raise LLMExtractionError(f"Gemini API request failed: {_safe_gemini_error(exc, api_key)}") from exc
+                return _validate_json(raw_text)
+            except (json.JSONDecodeError, ValidationError) as validation_error:
+                retry_instruction = (
+                    "Your previous response failed JSON parsing. Return ONLY valid JSON adhering to this schema:\n"
+                    f"{_schema_prompt()}\n\nResume text:\n{resume_text[:10000]}"
+                )
+                retry_resp = client.models.generate_content(model=model, contents=retry_instruction)
+                return _validate_json(_response_text(retry_resp))
+        except Exception as exc:
+            last_error = exc
+            continue
+
+    raise LLMExtractionError("Resume parsing failed. Please try again.") from last_error

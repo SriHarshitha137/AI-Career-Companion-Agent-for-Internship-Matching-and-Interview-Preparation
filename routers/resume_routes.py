@@ -14,7 +14,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from crud import create_resume
 from models import Resume
 from dependencies import CurrentUser, DBSession
-from main import ResumeProcessingError, parse_resume
+from services.resume_service import ResumeProcessingError, parse_resume
 from schemas import ResumeResponse
 
 router = APIRouter(prefix="/resume", tags=["Resume"])

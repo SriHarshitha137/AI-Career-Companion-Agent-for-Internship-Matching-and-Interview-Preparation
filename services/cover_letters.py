@@ -33,21 +33,22 @@ def generate(candidate: dict[str, Any], internship: dict[str, Any]) -> str:
         "If a detail is missing, omit it. Return only the letter.\n\n"
         f"CANDIDATE FACTS: {candidate}\n\nINTERNSHIP FACTS: {facts}"
     )
-    try:
-        from google import genai
-        model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
-        # Keep a named client alive until the request finishes. Creating the
-        # client inline can let Python dispose of it before google-genai sends
-        # the request, producing "client has been closed".
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(model=model, contents=prompt)
-        text = (response.text or "").strip()
-        if not text:
-            raise CoverLetterError("Gemini returned an empty cover letter.")
-        return text
-    except CoverLetterError:
-        raise
-    except Exception as exc:
-        raise CoverLetterError(
-            f"Gemini request failed for model '{model}': {_safe_gemini_error(exc, api_key)}"
-        ) from exc
+    from google import genai
+    configured_model = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+    models = [configured_model] + [m for m in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-flash-latest"] if m != configured_model]
+    client = genai.Client(api_key=api_key)
+
+    last_error: Exception | None = None
+    for model in models:
+        try:
+            response = client.models.generate_content(model=model, contents=prompt)
+            text = (response.text or "").strip()
+            if text:
+                return text
+        except Exception as exc:
+            last_error = exc
+            continue
+
+    raise CoverLetterError(
+        f"Gemini request failed: {_safe_gemini_error(last_error, api_key) if last_error else 'Generation returned empty'}"
+    )

@@ -40,6 +40,9 @@ def apply_safe_schema_updates() -> None:
         "portfolio": "VARCHAR(300)", "college": "VARCHAR(200)", "degree": "VARCHAR(150)",
         "branch": "VARCHAR(150)", "graduation_year": "INTEGER", "profile_picture_path": "VARCHAR(500)",
         "technical_skills": "JSON NOT NULL DEFAULT '[]'", "soft_skills": "JSON NOT NULL DEFAULT '[]'",
+        "cgpa": "VARCHAR(50)", "location": "VARCHAR(200)",
+        "projects": "JSON NOT NULL DEFAULT '[]'", "certifications": "JSON NOT NULL DEFAULT '[]'",
+        "achievements": "JSON NOT NULL DEFAULT '[]'",
     }
     existing = {column["name"] for column in inspect(engine).get_columns("user_profiles")} if inspect(engine).has_table("user_profiles") else set()
     with engine.begin() as connection:

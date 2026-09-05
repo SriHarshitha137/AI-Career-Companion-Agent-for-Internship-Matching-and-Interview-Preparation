@@ -15,21 +15,9 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.exc import SQLAlchemyError
 
 from database import Base, apply_safe_schema_updates, engine
-from extract_text import TextExtractionError, extract_text
-from llm_extractor import LLMExtractionError, extract_with_gemini
-from merge import merge_resume_data
-from regex_extractor import extract_contact_data
+from services.resume_service import ResumeProcessingError, parse_resume
 
 app = FastAPI(title="Resume Parser & User Management API", version="2.0.0")
-
-
-class ResumeProcessingError(Exception):
-    """Application-level error returned in a stable, readable JSON format."""
-
-    def __init__(self, message: str, status_code: int = 422) -> None:
-        self.message = message
-        self.status_code = status_code
-        super().__init__(message)
 
 
 @app.exception_handler(ResumeProcessingError)
@@ -66,22 +54,6 @@ def create_database_tables() -> None:
         raise RuntimeError("Database initialization failed.") from exc
 
 
-def parse_resume(file_bytes: bytes, filename: str) -> dict:
-    """Run extraction, regex parsing, Gemini parsing, and merge in one reusable pipeline."""
-    extension = Path(filename).suffix.lower()
-    if extension not in {".pdf", ".docx"}:
-        raise ResumeProcessingError("Unsupported file type. Upload a .pdf or .docx file.", 415)
-    try:
-        text = extract_text(file_bytes, extension)
-        contact = extract_contact_data(text)
-        llm_data = extract_with_gemini(text)
-        return merge_resume_data(contact, llm_data).model_dump(mode="json")
-    except TextExtractionError as exc:
-        raise ResumeProcessingError(str(exc), 422) from exc
-    except LLMExtractionError as exc:
-        raise ResumeProcessingError(str(exc), 502) from exc
-
-
 # Routers are imported after parse_resume so resume_routes can reuse this exact function.
 from routers.auth_routes import router as auth_router  # noqa: E402
 from routers.profile_routes import router as profile_router  # noqa: E402
@@ -100,7 +72,11 @@ app.include_router(assistant_router)
 app.include_router(cover_letter_router)
 
 WEB_DIRECTORY = Path("web")
+UPLOADS_DIRECTORY = Path("uploads")
+UPLOADS_DIRECTORY.mkdir(parents=True, exist_ok=True)
+
 app.mount("/web", StaticFiles(directory=WEB_DIRECTORY), name="web")
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIRECTORY), name="uploads")
 
 
 @app.get("/", include_in_schema=False)
@@ -111,7 +87,11 @@ def web_dashboard() -> FileResponse:
 @app.get("/{frontend_path:path}", include_in_schema=False)
 def frontend_routes(frontend_path: str) -> FileResponse:
     """Serve the SPA entry point for client-side InternSphere routes."""
-    allowed = {"login", "register", "dashboard", "profile", "resumes", "internships", "matches", "applications", "cover-letter", "ai-assistant"}
+    allowed = {
+        "login", "register", "dashboard", "profile", "resumes", "internships",
+        "matches", "skill-gap", "applications", "cover-letter", "cover-letters",
+        "ai-assistant", "assistant",
+    }
     if frontend_path.strip("/").split("/")[0] in allowed:
         return FileResponse(WEB_DIRECTORY / "index.html")
     raise HTTPException(status_code=404, detail="Not found.")

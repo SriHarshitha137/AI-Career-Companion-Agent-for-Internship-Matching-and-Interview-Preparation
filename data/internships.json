@@ -6,10 +6,14 @@
     "description": "Build and test backend services for a student-focused web platform. Work with engineers on APIs, data models, and reliable integrations.",
     "required_skills": ["Python", "SQL", "Git"],
     "preferred_skills": ["FastAPI", "Docker", "REST APIs"],
+    "education_requirements": "B.Tech / B.E. / MCA in Computer Science, Information Technology, or related discipline.",
+    "experience_requirements": "Hands-on projects with backend development, REST APIs, and relational databases.",
     "eligibility": "Students pursuing Computer Science, Information Technology, or a related field.",
     "location": "Bengaluru, India",
+    "work_mode": "Hybrid",
     "duration": "6 months",
     "stipend": "₹20,000/month",
+    "application_deadline": "2026-11-15",
     "application_url": "https://example.com/apply/nexora-se"
   },
   {
@@ -19,10 +23,14 @@
     "description": "Develop features across a React interface and Python API. Help improve an online marketplace used by university communities.",
     "required_skills": ["JavaScript", "React", "Python", "SQL"],
     "preferred_skills": ["FastAPI", "PostgreSQL", "Git"],
+    "education_requirements": "Undergraduate or postgraduate engineering students in CSE/IT/ECE.",
+    "experience_requirements": "Experience building end-to-end web applications with modern frontend and backend frameworks.",
     "eligibility": "Open to undergraduate and postgraduate engineering students.",
     "location": "Remote (India)",
+    "work_mode": "Remote",
     "duration": "4 months",
     "stipend": "₹15,000/month",
+    "application_deadline": "2026-10-30",
     "application_url": "https://example.com/apply/campuscart-fullstack"
   },
   {
@@ -32,10 +40,14 @@
     "description": "Prepare datasets, evaluate prediction models, and communicate findings with the product team. The team builds practical analytics tools.",
     "required_skills": ["Python", "Machine Learning", "Pandas", "NumPy"],
     "preferred_skills": ["scikit-learn", "Data Visualization", "SQL"],
+    "education_requirements": "Degree in Computer Science, AI/ML, Data Science, or Mathematics/Statistics.",
+    "experience_requirements": "Coursework or independent projects involving predictive modeling and machine learning algorithms.",
     "eligibility": "Students with coursework or projects in machine learning or data science.",
     "location": "Hyderabad, India",
+    "work_mode": "Hybrid",
     "duration": "6 months",
     "stipend": "₹22,000/month",
+    "application_deadline": "2026-11-20",
     "application_url": "https://example.com/apply/insightworks-ml"
   },
   {
@@ -45,10 +57,14 @@
     "description": "Analyse operational data, create dashboards, and write clear reports for business teams. This role focuses on data quality and insight generation.",
     "required_skills": ["SQL", "Excel", "Python"],
     "preferred_skills": ["Power BI", "Tableau", "Pandas"],
+    "education_requirements": "Students in Engineering, Statistics, Economics, Mathematics, or related fields.",
+    "experience_requirements": "Familiarity with SQL data querying, spreadsheet modeling, and dashboard creation.",
     "eligibility": "Open to students in engineering, statistics, economics, or related disciplines.",
     "location": "Pune, India",
+    "work_mode": "On-site",
     "duration": "3 months",
     "stipend": "₹12,000/month",
+    "application_deadline": "2026-10-15",
     "application_url": "https://example.com/apply/metricspring-data"
   },
   {
@@ -58,10 +74,14 @@
     "description": "Assist with secure API development, database queries, and automated tests for cloud workflow software.",
     "required_skills": ["Python", "REST APIs", "SQL", "Git"],
     "preferred_skills": ["Docker", "FastAPI", "AWS"],
+    "education_requirements": "Computer Science or related engineering background (graduating 2026-2028).",
+    "experience_requirements": "Solid understanding of data structures, OOP, relational databases, and API architecture.",
     "eligibility": "Computer science or related students with programming project experience.",
     "location": "Chennai, India",
+    "work_mode": "On-site",
     "duration": "6 months",
     "stipend": "₹18,000/month",
+    "application_deadline": "2026-11-05",
     "application_url": "https://example.com/apply/cloudharbor-backend"
   },
   {
@@ -71,10 +91,14 @@
     "description": "Create accessible web interfaces for learning tools and collaborate with designers to turn product ideas into responsive pages.",
     "required_skills": ["JavaScript", "HTML", "CSS", "React"],
     "preferred_skills": ["TypeScript", "Figma", "Git"],
+    "education_requirements": "Students in CSE, IT, Design, or self-taught developers with strong portfolio.",
+    "experience_requirements": "Component development in React, responsive CSS, and state management experience.",
     "eligibility": "Open to students with frontend projects or a portfolio.",
     "location": "Remote (India)",
+    "work_mode": "Remote",
     "duration": "3 months",
     "stipend": "₹14,000/month",
+    "application_deadline": "2026-10-25",
     "application_url": "https://example.com/apply/brightpath-frontend"
   },
   {
@@ -84,8 +108,15 @@
     "description": "Prototype retrieval-augmented generation features, evaluate prompts, and help build safe AI experiences for learners.",
     "required_skills": ["Python", "Generative AI", "Prompt Engineering"],
     "preferred_skills": ["RAG", "LangChain", "Vector Databases"],
+    "education_requirements": "Students pursuing Computer Science, AI, or Data Science degrees.",
+    "experience_requirements": "Demonstrated interest in LLMs, vector search, embeddings, or AI agents.",
     "eligibility": "Students with AI, machine learning, or software engineering coursework or projects.",
-    "location": "Remote (India)", "work_mode": "Remote", "duration": "6 months", "stipend": "Synthetic sample data", "application_url": null
+    "location": "Remote (India)",
+    "work_mode": "Remote",
+    "duration": "6 months",
+    "stipend": "₹25,000/month (sample)",
+    "application_deadline": "2026-12-01",
+    "application_url": "https://example.com/apply/synthetic-genai"
   },
   {
     "internship_id": "cloud-008",
@@ -94,8 +125,15 @@
     "description": "Support cloud deployments, infrastructure automation, monitoring, and reliable developer workflows.",
     "required_skills": ["Linux", "Git", "Docker"],
     "preferred_skills": ["AWS", "Kubernetes", "CI/CD"],
+    "education_requirements": "Engineering students interested in cloud infrastructure, networks, and systems.",
+    "experience_requirements": "Basic shell scripting, containerization concepts with Docker, and Git workflows.",
     "eligibility": "Engineering students interested in cloud infrastructure.",
-    "location": "Bengaluru, India", "work_mode": "Hybrid", "duration": "4 months", "stipend": "Synthetic sample data", "application_url": null
+    "location": "Bengaluru, India",
+    "work_mode": "Hybrid",
+    "duration": "4 months",
+    "stipend": "₹20,000/month (sample)",
+    "application_deadline": "2026-11-10",
+    "application_url": "https://example.com/apply/orbitops-devops"
   },
   {
     "internship_id": "java-009",
@@ -104,8 +142,15 @@
     "description": "Build maintainable Java services, work with relational data, and write automated tests with an engineering team.",
     "required_skills": ["Java", "SQL", "Git"],
     "preferred_skills": ["Spring Boot", "REST APIs", "JUnit"],
+    "education_requirements": "B.Tech / B.E. in Computer Science or related fields.",
+    "experience_requirements": "Core Java concepts (collections, multithreading, OOP), SQL queries, and JUnit testing.",
     "eligibility": "Students pursuing Computer Science or related fields.",
-    "location": "Mumbai, India", "work_mode": "On-site", "duration": "6 months", "stipend": "Synthetic sample data", "application_url": null
+    "location": "Mumbai, India",
+    "work_mode": "On-site",
+    "duration": "6 months",
+    "stipend": "₹18,000/month (sample)",
+    "application_deadline": "2026-11-15",
+    "application_url": "https://example.com/apply/northstar-java"
   },
   {
     "internship_id": "ds-010",
@@ -114,7 +159,14 @@
     "description": "Use Python to clean data, build statistical models, and present insights to product and operations teams.",
     "required_skills": ["Python", "Statistics", "Pandas", "SQL"],
     "preferred_skills": ["Machine Learning", "scikit-learn", "Data Visualization"],
+    "education_requirements": "Undergraduate or graduate students in Computer Science, Data Science, or Statistics.",
+    "experience_requirements": "Proficiency with Python, exploratory data analysis, and predictive modeling.",
     "eligibility": "Students with data science, statistics, or analytics projects.",
-    "location": "Hyderabad, India", "work_mode": "Hybrid", "duration": "5 months", "stipend": "Synthetic sample data", "application_url": null
+    "location": "Hyderabad, India",
+    "work_mode": "Hybrid",
+    "duration": "5 months",
+    "stipend": "₹22,000/month (sample)",
+    "application_deadline": "2026-11-30",
+    "application_url": "https://example.com/apply/forecastforge-ds"
   }
 ]

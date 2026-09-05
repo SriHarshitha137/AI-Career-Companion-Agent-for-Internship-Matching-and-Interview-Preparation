@@ -9,9 +9,9 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class StrictModel(BaseModel):
-    """Reject unexpected LLM keys so malformed answers do not silently pass."""
+    """Permit slight extra keys from LLMs so parsing remains resilient."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
 
 class Education(StrictModel):
@@ -164,6 +164,7 @@ class ProfileBase(BaseModel):
     full_name: str | None = Field(default=None, max_length=150)
     phone: str | None = Field(default=None, max_length=40)
     address: str | None = Field(default=None, max_length=500)
+    location: str | None = Field(default=None, max_length=200)
     bio: str | None = None
     linkedin: str | None = Field(default=None, max_length=300)
     github: str | None = Field(default=None, max_length=300)
@@ -172,11 +173,15 @@ class ProfileBase(BaseModel):
     degree: str | None = Field(default=None, max_length=150)
     branch: str | None = Field(default=None, max_length=150)
     graduation_year: int | None = Field(default=None, ge=1950, le=2100)
+    cgpa: str | None = Field(default=None, max_length=50)
     skills: list[str] = Field(default_factory=list)
     technical_skills: list[str] = Field(default_factory=list)
     soft_skills: list[str] = Field(default_factory=list)
     education: list[dict[str, Any]] = Field(default_factory=list)
     experience: list[dict[str, Any]] = Field(default_factory=list)
+    projects: list[dict[str, Any]] = Field(default_factory=list)
+    certifications: list[dict[str, Any]] = Field(default_factory=list)
+    achievements: list[str] = Field(default_factory=list)
 
 
 class ProfileCreate(ProfileBase):
@@ -187,6 +192,7 @@ class ProfileUpdate(BaseModel):
     full_name: str | None = Field(default=None, max_length=150)
     phone: str | None = Field(default=None, max_length=40)
     address: str | None = Field(default=None, max_length=500)
+    location: str | None = Field(default=None, max_length=200)
     bio: str | None = None
     linkedin: str | None = Field(default=None, max_length=300)
     github: str | None = Field(default=None, max_length=300)
@@ -195,11 +201,15 @@ class ProfileUpdate(BaseModel):
     degree: str | None = Field(default=None, max_length=150)
     branch: str | None = Field(default=None, max_length=150)
     graduation_year: int | None = Field(default=None, ge=1950, le=2100)
+    cgpa: str | None = Field(default=None, max_length=50)
     skills: list[str] | None = None
     technical_skills: list[str] | None = None
     soft_skills: list[str] | None = None
     education: list[dict[str, Any]] | None = None
     experience: list[dict[str, Any]] | None = None
+    projects: list[dict[str, Any]] | None = None
+    certifications: list[dict[str, Any]] | None = None
+    achievements: list[str] | None = None
 
 
 class ProfileResponse(ProfileBase):
@@ -285,7 +295,7 @@ class ApplicationCreateRequest(BaseModel):
 
 
 class ApplicationUpdateRequest(BaseModel):
-    status: str = Field(pattern="^(Applied|Under Review|Shortlisted|Interview|Accepted|Rejected)$")
+    status: str = Field(pattern="^(Applied|Under Review|Shortlisted|Interview|Selected|Accepted|Rejected|Withdrawn)$")
 
 
 class ApplicationResponse(BaseModel):
@@ -305,9 +315,22 @@ class AssistantChatRequest(BaseModel):
     session_id: int | None = None
 
 
+class ChatSessionCreateRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=160)
+
+
+class ChatSessionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    title: str
+    created_at: datetime
+    updated_at: datetime
+
+
 class ChatMessageResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    session_id: int
     role: str
     content: str
     created_at: datetime
@@ -317,3 +340,4 @@ class AssistantChatResponse(BaseModel):
     session_id: int
     answer: str
     sources: list[str] = Field(default_factory=list)
+    question: str | None = None

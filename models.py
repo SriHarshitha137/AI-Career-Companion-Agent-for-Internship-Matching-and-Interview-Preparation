@@ -52,12 +52,17 @@ class UserProfile(Base):
     degree: Mapped[str | None] = mapped_column(String(150), nullable=True)
     branch: Mapped[str | None] = mapped_column(String(150), nullable=True)
     graduation_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    cgpa: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    location: Mapped[str | None] = mapped_column(String(200), nullable=True)
     profile_picture_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     skills: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
     technical_skills: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
     soft_skills: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
     education: Mapped[list[dict]] = mapped_column(JSON, default=list, nullable=False)
     experience: Mapped[list[dict]] = mapped_column(JSON, default=list, nullable=False)
+    projects: Mapped[list[dict]] = mapped_column(JSON, default=list, nullable=False)
+    certifications: Mapped[list[dict]] = mapped_column(JSON, default=list, nullable=False)
+    achievements: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
