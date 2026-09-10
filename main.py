@@ -12,6 +12,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 from fastapi.encoders import jsonable_encoder
+
 from sqlalchemy.exc import SQLAlchemyError
 
 from database import Base, apply_safe_schema_updates, engine
