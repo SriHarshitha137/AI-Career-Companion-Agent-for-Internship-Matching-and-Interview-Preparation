@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/web/styles.css">
+  <link rel="stylesheet" href="/web/styles.css?v=2.2.0">
 </head>
 <body>
   <!-- Toast Notifications -->
@@ -234,6 +234,11 @@
         <a href="/cover-letters" class="nav-item" data-link data-route="cover-letters" title="Cover Letters">
           <span class="nav-icon">✎</span>
           <span class="nav-label">Cover Letters</span>
+        </a>
+        <a href="/interview-prep" class="nav-item" data-link data-route="interview-prep" title="Interview Preparation">
+          <span class="nav-icon">🎙</span>
+          <span class="nav-label">Interview Preparation</span>
+          <span class="nav-badge">AI Agent</span>
         </a>
         <a href="/assistant" class="nav-item" data-link data-route="assistant" title="AI Assistant">
           <span class="nav-icon">◌</span>
@@ -891,10 +896,252 @@
         </div>
       </section>
 
+      <!-- ========================================================== -->
+      <!-- VIEW 9: INTERVIEW PREPARATION AGENT                        -->
+      <!-- ========================================================== -->
+      <section id="interview-prep-page" class="view-page" hidden>
+        <div class="view-header">
+          <div class="view-title-group">
+            <span class="view-eyebrow">AI-POWERED CAREER COACH</span>
+            <h1>Interview Preparation</h1>
+            <p class="view-subtitle">Master your interviews with personalized questions, roadmaps, grounded answers, and document Q&A based on your resume.</p>
+          </div>
+          <div class="view-actions" id="prep-header-status-slot">
+            <span id="prep-header-status-badge" class="badge badge-success" style="display:none;">Resume Parsed ✓</span>
+          </div>
+        </div>
+
+        <!-- 1. MISSING RESUME WARNING BANNER (Shown ONLY if user has no parsed resume) -->
+        <div id="prep-no-resume-banner" class="card prep-alert-card" style="display:none;">
+          <div class="prep-alert-icon">⚠️</div>
+          <div class="prep-alert-content">
+            <h3>Resume Required for Interview Personalization</h3>
+            <p>Please upload and parse your resume first. Your resume is required to personalize interview preparation.</p>
+          </div>
+          <div class="prep-alert-action">
+            <a href="/resumes" class="btn btn-primary" data-link>Upload Resume</a>
+          </div>
+        </div>
+
+        <!-- 2. RESUME-POWERED WORKSPACE (Shown when resume is available) -->
+        <div id="prep-main-workspace">
+          <!-- Role Recommendation & Selection Bar -->
+          <div class="card prep-role-selector-card">
+            <div class="role-selector-header">
+              <div>
+                <span class="view-eyebrow">ROLE SELECTION</span>
+                <h3>Recommended Roles for You</h3>
+                <p class="card-hint">Based on your skills, experience, and projects. Click a role to personalize all questions, roadmaps, and chat.</p>
+              </div>
+              <div class="active-role-display">
+                <span class="active-role-label">Target Role:</span>
+                <strong id="prep-active-role-badge" class="role-badge active">Software Engineer Intern</strong>
+              </div>
+            </div>
+
+            <!-- Role Chips Grid -->
+            <div id="prep-recommended-roles" class="prep-roles-grid">
+              <div class="loading-state">
+                <div class="spinner"></div>
+                <span>Analyzing your resume for recommended roles...</span>
+              </div>
+            </div>
+
+            <div class="custom-role-row">
+              <label for="prep-custom-role-input">Or specify a target role:</label>
+              <div class="input-with-btn">
+                <input id="prep-custom-role-input" type="text" placeholder="e.g. Backend Developer Intern, AI/ML Intern..." maxlength="120">
+                <button id="prep-set-role-btn" class="btn btn-secondary btn-sm" type="button">Set Role</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Preparation Modules Grid (Accordion / Tabs / Cards) -->
+          <div class="prep-modules-grid">
+            <!-- Strongest Skills Card -->
+            <div class="card prep-module-card" id="module-strongest-skills">
+              <div class="module-header">
+                <div class="module-icon">✦</div>
+                <div>
+                  <h4>Strongest Skills</h4>
+                  <span class="card-hint">Demonstrated core competencies with resume evidence</span>
+                </div>
+              </div>
+              <div id="prep-skills-content" class="module-body">
+                <button id="prep-load-skills-btn" class="btn btn-secondary btn-sm btn-block" type="button">Analyze Strongest Skills</button>
+              </div>
+            </div>
+
+            <!-- Technical Questions Card -->
+            <div class="card prep-module-card" id="module-technical-questions">
+              <div class="module-header">
+                <div class="module-icon">▣</div>
+                <div>
+                  <h4>Technical Questions</h4>
+                  <span class="card-hint">Role-specific questions grounded in your technologies</span>
+                </div>
+              </div>
+              <div id="prep-tech-questions-content" class="module-body">
+                <button id="prep-load-tech-btn" class="btn btn-secondary btn-sm btn-block" type="button">Generate Technical Questions</button>
+              </div>
+            </div>
+
+            <!-- HR & Behavioral Card -->
+            <div class="card prep-module-card" id="module-hr-questions">
+              <div class="module-header">
+                <div class="module-icon">◎</div>
+                <div>
+                  <h4>HR & Behavioral</h4>
+                  <span class="card-hint">Behavioral questions personalized to your experiences</span>
+                </div>
+              </div>
+              <div id="prep-hr-questions-content" class="module-body">
+                <button id="prep-load-hr-btn" class="btn btn-secondary btn-sm btn-block" type="button">Generate HR Questions</button>
+              </div>
+            </div>
+
+            <!-- Project-Based Questions Card -->
+            <div class="card prep-module-card" id="module-project-questions">
+              <div class="module-header">
+                <div class="module-icon">⚙</div>
+                <div>
+                  <h4>Project-Based Questions</h4>
+                  <span class="card-hint">Architecture, trade-offs, and challenges from your projects</span>
+                </div>
+              </div>
+              <div id="prep-project-questions-content" class="module-body">
+                <button id="prep-load-project-btn" class="btn btn-secondary btn-sm btn-block" type="button">Generate Project Questions</button>
+              </div>
+            </div>
+
+            <!-- Preparation Roadmap Card -->
+            <div class="card prep-module-card" id="module-roadmap">
+              <div class="module-header">
+                <div class="module-icon">◬</div>
+                <div>
+                  <h4>Preparation Roadmap</h4>
+                  <span class="card-hint">Step-by-step master plan for your target role</span>
+                </div>
+              </div>
+              <div id="prep-roadmap-content" class="module-body">
+                <button id="prep-load-roadmap-btn" class="btn btn-secondary btn-sm btn-block" type="button">View Preparation Roadmap</button>
+              </div>
+            </div>
+
+            <!-- Skill Gap & Learning Path Card -->
+            <div class="card prep-module-card" id="module-skill-gap">
+              <div class="module-header">
+                <div class="module-icon">✎</div>
+                <div>
+                  <h4>Interview Skill Gap & Path</h4>
+                  <span class="card-hint">Skills present vs missing and targeted study phases</span>
+                </div>
+              </div>
+              <div id="prep-skill-gap-content" class="module-body">
+                <button id="prep-load-gap-btn" class="btn btn-secondary btn-sm btn-block" type="button">Analyze Skill Gap & Learning Path</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document Upload & Preparation Section -->
+          <div class="card prep-documents-card">
+            <div class="prep-doc-header">
+              <div>
+                <span class="view-eyebrow">DOCUMENT PREPARATION</span>
+                <h3>Upload Study Guides, Job Descriptions, or Interview Syllabus</h3>
+                <p class="card-hint">Upload a PDF or DOCX file to ask document-grounded interview questions or combine with your resume context.</p>
+              </div>
+            </div>
+
+            <div class="prep-doc-content-split">
+              <!-- Upload Form -->
+              <form id="prep-doc-upload-form" class="prep-upload-box">
+                <input id="prep-doc-file-input" type="file" accept=".pdf,.docx" hidden>
+                <div class="upload-dropzone" id="prep-doc-dropzone">
+                  <div class="dropzone-icon">▤</div>
+                  <div class="dropzone-text">
+                    <strong>Click or Drag & Drop Document</strong>
+                    <span>Supports PDF and DOCX (up to 10 MB)</span>
+                  </div>
+                  <span id="prep-doc-selected-name" class="badge badge-purple" hidden></span>
+                </div>
+                <button id="prep-doc-upload-btn" class="btn btn-primary btn-block" type="submit" disabled>
+                  <span>Upload & Index with RAG</span>
+                </button>
+              </form>
+
+              <!-- Uploaded Documents List -->
+              <div class="prep-uploaded-docs-wrapper">
+                <h4>Uploaded Preparation Documents</h4>
+                <div id="prep-documents-list" class="prep-docs-scroll-list">
+                  <div class="empty-state-small">No documents uploaded yet.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Interview Coach Chat Workspace -->
+          <div class="chat-workspace-grid prep-chat-workspace">
+            <!-- Left: Sessions Sidebar -->
+            <aside class="chat-history-sidebar card">
+              <button id="prep-new-chat-btn" class="btn btn-primary btn-block" type="button">
+                <span>+ New Chat</span>
+              </button>
+              <h4 class="history-title">Interview Sessions</h4>
+              <div id="prep-chat-sessions-list" class="sessions-scroll-list">
+                <div class="loading-state">
+                  <div class="spinner"></div>
+                  <span>Loading interview chats...</span>
+                </div>
+              </div>
+            </aside>
+
+            <!-- Right: Interactive Chat Panel -->
+            <div class="chat-main-card card">
+              <div class="chat-panel-header">
+                <div class="agent-avatar-badge prep-avatar">🎙</div>
+                <div style="flex:1;">
+                  <strong id="prep-active-chat-title">Interview Coach</strong>
+                  <span class="agent-status-indicator">
+                    <span class="green-dot"></span> <span id="prep-chat-role-indicator">Target: Software Engineer Intern</span>
+                    <span id="prep-chat-doc-indicator" class="badge badge-sm badge-blue" style="display:none;">Doc Attached</span>
+                  </span>
+                </div>
+                <div class="chat-voice-global-controls">
+                  <button id="prep-stop-voice-btn" class="btn btn-secondary btn-sm" type="button" style="display:none;" title="Stop Voice Playback">
+                    <span>⏹ Stop Audio</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Product Redirect Alert (Shown dynamically when product questions are asked) -->
+              <div id="prep-product-redirect-banner" class="product-redirect-banner" style="display:none;">
+                <span>This was a product question. For questions about using InternSphere, please visit the AI Assistant.</span>
+                <a href="/assistant" class="btn btn-primary btn-sm" data-link>Go to AI Assistant &rarr;</a>
+              </div>
+
+              <!-- Messages Scroll Area -->
+              <div id="prep-chat-messages-container" class="chat-messages-scroll">
+                <!-- Welcome state rendered by JS -->
+              </div>
+
+              <!-- Chat Input Bar -->
+              <form id="prep-chat-form" class="chat-input-bar">
+                <input id="prep-chat-input" name="question" type="text" placeholder="Ask about your strongest skills, technical questions, answers, or documents..." autocomplete="off" required>
+                <button id="prep-chat-send-btn" class="btn btn-primary" type="submit">
+                  <span>Send</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </section>
 
   <!-- Application Logic -->
-  <script src="/web/app.js"></script>
+  <script src="/web/app.js?v=2.2.0"></script>
 </body>
 </html>

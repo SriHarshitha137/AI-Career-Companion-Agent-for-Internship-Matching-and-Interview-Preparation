@@ -341,3 +341,115 @@ class AssistantChatResponse(BaseModel):
     answer: str
     sources: list[str] = Field(default_factory=list)
     question: str | None = None
+
+
+class InterviewStatusResponse(BaseModel):
+    has_resume: bool
+    resume_id: int | None = None
+    candidate_name: str | None = None
+    technical_skills: list[str] = Field(default_factory=list)
+    recommended_roles: list[str] = Field(default_factory=list)
+    projects_count: int = 0
+    message: str | None = None
+
+
+class InterviewSessionCreateRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=160)
+    selected_role: str | None = Field(default=None, max_length=150)
+
+
+class InterviewSessionUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=160)
+    selected_role: str | None = Field(default=None, max_length=150)
+
+
+class InterviewSessionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    title: str
+    selected_role: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class InterviewMessageResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    session_id: int
+    role: str
+    content: str
+    context_metadata: dict[str, Any] | None = None
+    created_at: datetime
+
+
+class InterviewChatRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=3000)
+    session_id: int | None = None
+    selected_role: str | None = None
+    document_id: int | None = None
+
+
+class InterviewChatResponse(BaseModel):
+    session_id: int
+    answer: str
+    selected_role: str | None = None
+    sources: list[str] = Field(default_factory=list)
+    question: str | None = None
+    is_product_redirect: bool = False
+    is_out_of_scope: bool = False
+
+
+class InterviewRoleRecommendationResponse(BaseModel):
+    roles: list[str] = Field(default_factory=list)
+    reasoning: str
+    candidate_skills: list[str] = Field(default_factory=list)
+
+
+class InterviewStrongestSkillsResponse(BaseModel):
+    skills: list[str] = Field(default_factory=list)
+    explanation: str
+    evidence: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class InterviewQuestionsRequest(BaseModel):
+    category: str = Field(default="technical")
+    role: str | None = None
+    project_name: str | None = None
+
+
+class InterviewQuestionsResponse(BaseModel):
+    category: str
+    role: str
+    questions: list[str] = Field(default_factory=list)
+    context_summary: str
+
+
+class InterviewRoadmapRequest(BaseModel):
+    role: str = Field(min_length=2, max_length=150)
+
+
+class InterviewRoadmapResponse(BaseModel):
+    role: str
+    roadmap: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class InterviewSkillGapRequest(BaseModel):
+    role: str = Field(min_length=2, max_length=150)
+
+
+class InterviewSkillGapResponse(BaseModel):
+    role: str
+    current_skills: list[str] = Field(default_factory=list)
+    skills_to_improve: list[str] = Field(default_factory=list)
+    missing_skills: list[str] = Field(default_factory=list)
+    learning_path: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class InterviewDocumentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    filename: str
+    file_type: str
+    chunk_count: int
+    created_at: datetime
+

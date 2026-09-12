@@ -34,6 +34,12 @@ class User(Base):
     applications: Mapped[list["Application"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     cover_letters: Mapped[list["CoverLetter"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     chat_sessions: Mapped[list["ChatSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    interview_sessions: Mapped[list["InterviewSession"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    interview_documents: Mapped[list["InterviewDocument"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class UserProfile(Base):
@@ -139,3 +145,51 @@ class ChatMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
 
     session: Mapped[ChatSession] = relationship(back_populates="messages")
+
+
+class InterviewSession(Base):
+    __tablename__ = "interview_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    title: Mapped[str] = mapped_column(String(160), default="Interview Prep Session", nullable=False)
+    selected_role: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
+
+    user: Mapped[User] = relationship(back_populates="interview_sessions")
+    messages: Mapped[list["InterviewMessage"]] = relationship(
+        back_populates="session", cascade="all, delete-orphan"
+    )
+
+
+class InterviewMessage(Base):
+    __tablename__ = "interview_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("interview_sessions.id", ondelete="CASCADE"), index=True)
+    role: Mapped[str] = mapped_column(String(20), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    context_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    session: Mapped[InterviewSession] = relationship(back_populates="messages")
+
+
+class InterviewDocument(Base):
+    __tablename__ = "interview_documents"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    stored_filename: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    file_path: Mapped[str] = mapped_column(String(500), nullable=False)
+    file_type: Mapped[str] = mapped_column(String(10), nullable=False)
+    extracted_text: Mapped[str] = mapped_column(Text, nullable=False)
+    chunks: Mapped[list[dict]] = mapped_column(JSON, default=list, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    user: Mapped[User] = relationship(back_populates="interview_documents")
+

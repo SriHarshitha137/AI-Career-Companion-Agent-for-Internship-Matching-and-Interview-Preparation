@@ -20,6 +20,14 @@
   let selectedSkillGapInternshipId = null;
   let pendingModalAction = null;
   let selectedPhotoFile = null;
+  let interviewSessionsList = [];
+  let currentInterviewSessionId = null;
+  let currentSelectedRole = 'Software Engineer Intern';
+  let interviewDocumentsList = [];
+  let activeAttachedDocId = null;
+  let selectedDocUploadFile = null;
+  let activeSpeechUtterance = null;
+  let activeVoiceBtn = null;
 
   // DOM Helpers
   const $ = (selector) => document.querySelector(selector);
@@ -90,7 +98,7 @@
       if (response.status === 401) {
         localStorage.removeItem('token');
         currentUser = null;
-        renderAppShell();
+        handleRouteChange();
         showToast('Your session has expired. Please sign in again.', true);
       }
       const errorMsg = data?.error?.message || data?.detail || 'An unexpected error occurred.';
@@ -129,6 +137,7 @@
     const aliases = {
       'cover-letter': 'cover-letters',
       'ai-assistant': 'assistant',
+      'interview-preparation': 'interview-prep',
     };
     return aliases[firstSegment] || firstSegment;
   }
@@ -169,6 +178,11 @@
         currentUser = await api('/me');
         updateUserBadge();
       } catch (err) {
+        localStorage.removeItem('token');
+        currentUser = null;
+        $('#auth-view').hidden = false;
+        $('#app-view').hidden = true;
+        history.replaceState({}, '', '/login');
         return;
       }
     }
@@ -182,6 +196,7 @@
       'applications',
       'cover-letters',
       'assistant',
+      'interview-prep',
     ];
     const targetPage = validPages.includes(route) ? route : 'dashboard';
     if (targetPage !== route) {
@@ -213,6 +228,7 @@
     if (targetPage === 'applications') loadApplicationsView();
     if (targetPage === 'cover-letters') loadCoverLettersView();
     if (targetPage === 'assistant') loadAssistantView();
+    if (targetPage === 'interview-prep') loadInterviewPrepView();
   }
 
   function updateUserBadge() {
@@ -1191,13 +1207,77 @@
             showToast('Could not delete chat.', true);
           }
         });
+      } else if (action === 'switch-prep-session') {
+        loadInterviewSessionMessages(Number(id));
+      } else if (action === 'delete-prep-session') {
+        showConfirmModal('Delete Interview Session', 'Are you sure you want to delete this interview preparation session?', async () => {
+          try {
+            await api(`/interview-prep/sessions/${id}`, { method: 'DELETE' });
+            interviewSessionsList = interviewSessionsList.filter((s) => s.id !== Number(id));
+            if (currentInterviewSessionId === Number(id)) {
+              currentInterviewSessionId = interviewSessionsList[0]?.id || null;
+            }
+            if (currentInterviewSessionId) {
+              loadInterviewSessionMessages(currentInterviewSessionId);
+            } else {
+              createInterviewChatSession();
+            }
+            renderInterviewSessions(interviewSessionsList);
+            showToast('Interview session deleted.');
+          } catch (e) {
+            showToast('Could not delete session.', true);
+          }
+        });
+      } else if (action === 'select-prep-role') {
+        setInterviewRole(btn.dataset.role);
+      } else if (action === 'ask-prep-coach') {
+        const question = btn.dataset.question;
+        if (question) {
+          sendInterviewPrepMessage(question);
+          const chatInput = $('#prep-chat-input');
+          if (chatInput) chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } else if (action === 'toggle-attach-prep-doc') {
+        const docId = Number(id);
+        activeAttachedDocId = activeAttachedDocId === docId ? null : docId;
+        renderInterviewDocuments(interviewDocumentsList);
+        updateChatDocIndicator();
+      } else if (action === 'delete-prep-doc') {
+        showConfirmModal('Delete Preparation Document', 'Are you sure you want to delete this document and its indexed vectors?', async () => {
+          try {
+            await api(`/interview-prep/documents/${id}`, { method: 'DELETE' });
+            interviewDocumentsList = interviewDocumentsList.filter((d) => d.id !== Number(id));
+            if (activeAttachedDocId === Number(id)) {
+              activeAttachedDocId = null;
+              updateChatDocIndicator();
+            }
+            renderInterviewDocuments(interviewDocumentsList);
+            showToast('Document deleted.');
+          } catch (err) {
+            showToast(err.message, true);
+          }
+        });
       }
+      return;
+    }
+
+    // Voice Read-Aloud Action
+    const voiceBtn = e.target.closest('.chat-voice-btn');
+    if (voiceBtn) {
+      const msgContent = voiceBtn.dataset.speech || voiceBtn.closest('.chat-bubble')?.innerText || '';
+      playSpeechText(msgContent, voiceBtn);
       return;
     }
 
     // Suggestion chips in Assistant
     if (e.target.classList.contains('suggest-chip')) {
       sendAssistantMessage(e.target.textContent);
+      return;
+    }
+
+    // Suggestion chips in Interview Prep
+    if (e.target.classList.contains('prep-suggest-chip')) {
+      sendInterviewPrepMessage(e.target.textContent);
       return;
     }
   });
@@ -1479,4 +1559,701 @@
     input.value = '';
     sendAssistantMessage(q);
   };
+
+  // ==============================================================
+  // VIEW 9: INTERVIEW PREPARATION AGENT
+  // ==============================================================
+
+  function stopSpeechPlayback() {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (activeVoiceBtn) {
+      activeVoiceBtn.classList.remove('speaking');
+      activeVoiceBtn.innerHTML = '<span>🔊 Listen</span>';
+      activeVoiceBtn = null;
+    }
+    const stopBtn = $('#prep-stop-voice-btn');
+    if (stopBtn) stopBtn.style.display = 'none';
+  }
+
+  function playSpeechText(text, btnElement) {
+    if (!('speechSynthesis' in window)) {
+      showToast('Speech synthesis is not supported in your browser.', true);
+      return;
+    }
+
+    if (activeVoiceBtn === btnElement && window.speechSynthesis.speaking) {
+      stopSpeechPlayback();
+      return;
+    }
+
+    stopSpeechPlayback();
+
+    // Strip markdown formatting for natural speech
+    const plainText = text
+      .replace(/#{1,6}\s+/g, '')
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/`{1,3}[^`]*`{1,3}/g, '')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/[-*•]\s+/g, '')
+      .replace(/\n+/g, ' ')
+      .trim();
+
+    if (!plainText) return;
+
+    try {
+      const utterance = new SpeechSynthesisUtterance(plainText);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+
+      btnElement.classList.add('speaking');
+      btnElement.innerHTML = '<span>⏹ Stop</span>';
+      activeVoiceBtn = btnElement;
+
+      const stopBtn = $('#prep-stop-voice-btn');
+      if (stopBtn) stopBtn.style.display = 'inline-flex';
+
+      utterance.onend = () => stopSpeechPlayback();
+      utterance.onerror = () => stopSpeechPlayback();
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      stopSpeechPlayback();
+    }
+  }
+
+  function formatPrepMarkdown(content) {
+    if (!content) return '';
+    let text = escapeHtml(content);
+
+    // Headings ###
+    text = text.replace(/^### (.*$)/gim, '<h5 style="margin:12px 0 6px; color:var(--accent-primary); font-size:1rem;">$1</h5>');
+    text = text.replace(/^## (.*$)/gim, '<h4 style="margin:14px 0 8px; color:var(--text-primary); font-size:1.05rem;">$1</h4>');
+
+    // Bold
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // Code blocks & inline code
+    text = text.replace(/`([^`]+)`/g, '<code style="background:var(--bg-subtle); padding:2px 6px; border-radius:4px; font-family:var(--font-mono); font-size:0.85em;">$1</code>');
+
+    // Bullet points
+    text = text.replace(/^\s*[-*]\s+(.*$)/gim, '<li style="margin-left:20px; list-style-type:disc;">$1</li>');
+
+    // Numbered items
+    text = text.replace(/^\s*(\d+)\.\s+(.*$)/gim, '<li style="margin-left:20px; list-style-type:decimal;">$2</li>');
+
+    // New lines
+    text = text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+    return text;
+  }
+
+  async function loadInterviewPrepView() {
+    try {
+      const statusData = await api('/interview-prep/status');
+      const noResumeBanner = $('#prep-no-resume-banner');
+      const mainWorkspace = $('#prep-main-workspace');
+      const statusBadge = $('#prep-header-status-badge');
+
+      if (!statusData.has_resume) {
+        if (noResumeBanner) noResumeBanner.style.display = 'flex';
+        if (mainWorkspace) mainWorkspace.style.display = 'none';
+        if (statusBadge) statusBadge.style.display = 'none';
+        return;
+      }
+
+      if (noResumeBanner) noResumeBanner.style.display = 'none';
+      if (mainWorkspace) mainWorkspace.style.display = 'block';
+      if (statusBadge) statusBadge.style.display = 'inline-block';
+
+      // Render recommended roles
+      renderRecommendedRoles(statusData.recommended_roles || []);
+
+      // Auto-load core modules so candidate sees personalized preparation immediately
+      loadStrongestSkillsModule();
+      loadQuestionsModule('technical', 'prep-tech-questions-content');
+      loadQuestionsModule('hr', 'prep-hr-questions-content');
+      loadQuestionsModule('project', 'prep-project-questions-content');
+      loadRoadmapModule();
+      loadSkillGapModule();
+
+      // Load documents
+      await loadInterviewDocuments();
+
+      // Load sessions
+      await loadInterviewSessions();
+    } catch (err) {
+      showToast(err.message || 'Could not load interview preparation status.', true);
+    }
+  }
+
+  function renderRecommendedRoles(roles) {
+    const container = $('#prep-recommended-roles');
+    if (!container) return;
+
+    if (!roles || roles.length === 0) {
+      roles = [
+        'Software Engineer Intern',
+        'Backend Developer Intern',
+        'Frontend Developer Intern',
+        'AI/ML Intern',
+        'Data Science Intern',
+      ];
+    }
+
+    if (!roles.includes(currentSelectedRole) && roles.length > 0) {
+      currentSelectedRole = roles[0];
+    }
+
+    updateRoleDisplays();
+
+    container.innerHTML = roles
+      .map(
+        (r) => `
+        <button class="role-chip-btn ${r === currentSelectedRole ? 'active' : ''}" type="button" data-action="select-prep-role" data-role="${escapeHtml(r)}">
+          <span>${escapeHtml(r)}</span>
+        </button>`
+      )
+      .join('');
+  }
+
+  function setInterviewRole(newRole) {
+    if (!newRole || !newRole.trim()) return;
+    currentSelectedRole = newRole.trim();
+    updateRoleDisplays();
+
+    // Re-render role chips active state
+    $$('.role-chip-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.role === currentSelectedRole);
+    });
+
+    showToast(`Target role set to: ${currentSelectedRole}`);
+
+    // Refresh role-dependent question, roadmap, and gap modules
+    loadQuestionsModule('technical', 'prep-tech-questions-content');
+    loadQuestionsModule('hr', 'prep-hr-questions-content');
+    loadRoadmapModule();
+    loadSkillGapModule();
+
+    // Update active session on backend if exists
+    if (currentInterviewSessionId) {
+      api(`/interview-prep/sessions/${currentInterviewSessionId}/role`, {
+        method: 'PUT',
+        body: JSON.stringify({ selected_role: currentSelectedRole }),
+      }).catch(() => {});
+    }
+  }
+
+  function updateRoleDisplays() {
+    const badge = $('#prep-active-role-badge');
+    if (badge) badge.textContent = currentSelectedRole;
+    const chatRole = $('#prep-chat-role-indicator');
+    if (chatRole) chatRole.textContent = `Target: ${currentSelectedRole}`;
+  }
+
+  function updateChatDocIndicator() {
+    const badge = $('#prep-chat-doc-indicator');
+    if (!badge) return;
+    if (activeAttachedDocId) {
+      const doc = interviewDocumentsList.find((d) => d.id === activeAttachedDocId);
+      badge.textContent = `Doc: ${doc?.filename?.slice(0, 16) || 'Attached'}`;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // Document Management
+  async function loadInterviewDocuments() {
+    try {
+      interviewDocumentsList = await api('/interview-prep/documents');
+      renderInterviewDocuments(interviewDocumentsList);
+    } catch (err) {
+      interviewDocumentsList = [];
+      renderInterviewDocuments([]);
+    }
+  }
+
+  function renderInterviewDocuments(docs) {
+    const container = $('#prep-documents-list');
+    if (!container) return;
+
+    if (!docs || docs.length === 0) {
+      container.innerHTML = '<div class="empty-state-small" style="padding:16px; text-align:center; color:var(--text-muted);">No documents uploaded yet. Upload a PDF/DOCX to prepare.</div>';
+      return;
+    }
+
+    container.innerHTML = docs
+      .map(
+        (d) => `
+        <div class="doc-item-row ${d.id === activeAttachedDocId ? 'active' : ''}">
+          <div class="doc-info">
+            <span class="badge badge-sm badge-purple">${escapeHtml(d.file_type.toUpperCase().replace('.', ''))}</span>
+            <strong title="${escapeHtml(d.filename)}">${escapeHtml(d.filename)}</strong>
+            <span class="card-hint">(${d.chunk_count} RAG chunks)</span>
+          </div>
+          <div class="doc-action-btns">
+            <button class="btn btn-sm ${d.id === activeAttachedDocId ? 'btn-primary' : 'btn-secondary'}" type="button" data-action="toggle-attach-prep-doc" data-id="${d.id}">
+              ${d.id === activeAttachedDocId ? 'Attached ✓' : 'Attach to Chat'}
+            </button>
+            <button class="icon-btn" type="button" data-action="delete-prep-doc" data-id="${d.id}" title="Delete document" style="color:var(--danger);">&times;</button>
+          </div>
+        </div>`
+      )
+      .join('');
+  }
+
+  // Interview Sessions & Chat
+  async function loadInterviewSessions() {
+    try {
+      interviewSessionsList = await api('/interview-prep/sessions');
+      renderInterviewSessions(interviewSessionsList);
+
+      if (currentInterviewSessionId && interviewSessionsList.some((s) => s.id === currentInterviewSessionId)) {
+        await loadInterviewSessionMessages(currentInterviewSessionId);
+      } else if (interviewSessionsList.length > 0) {
+        currentInterviewSessionId = interviewSessionsList[0].id;
+        await loadInterviewSessionMessages(currentInterviewSessionId);
+      } else {
+        await createInterviewChatSession();
+      }
+    } catch (err) {
+      renderInterviewWelcomeState();
+    }
+  }
+
+  function renderInterviewSessions(sessions) {
+    const container = $('#prep-chat-sessions-list');
+    if (!container) return;
+
+    if (!sessions || sessions.length === 0) {
+      container.innerHTML = '<p class="card-hint" style="padding:12px;">No recent interview chats.</p>';
+      return;
+    }
+
+    container.innerHTML = sessions
+      .map(
+        (s) => `
+        <div class="session-item-btn ${s.id === currentInterviewSessionId ? 'active' : ''}" data-action="switch-prep-session" data-id="${s.id}">
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">${escapeHtml(s.title)}</span>
+          <button class="session-delete-btn" data-action="delete-prep-session" data-id="${s.id}" title="Delete interview chat">&times;</button>
+        </div>`
+      )
+      .join('');
+  }
+
+  async function createInterviewChatSession() {
+    stopSpeechPlayback();
+    try {
+      const newSession = await api('/interview-prep/sessions', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: 'Interview Prep Session',
+          selected_role: currentSelectedRole,
+        }),
+      });
+      currentInterviewSessionId = newSession.id;
+      interviewSessionsList = [newSession, ...interviewSessionsList];
+      renderInterviewSessions(interviewSessionsList);
+
+      const activeTitle = $('#prep-active-chat-title');
+      if (activeTitle) activeTitle.textContent = newSession.title;
+      renderInterviewWelcomeState();
+    } catch (err) {
+      showToast('Could not initialize interview chat session.', true);
+    }
+  }
+
+  async function loadInterviewSessionMessages(sessionId) {
+    stopSpeechPlayback();
+    currentInterviewSessionId = sessionId;
+    const session = interviewSessionsList.find((s) => s.id === sessionId);
+    if (session && session.selected_role) {
+      currentSelectedRole = session.selected_role;
+      updateRoleDisplays();
+    }
+
+    const activeTitle = $('#prep-active-chat-title');
+    if (activeTitle) activeTitle.textContent = session?.title || 'Interview Prep';
+    renderInterviewSessions(interviewSessionsList);
+
+    const container = $('#prep-chat-messages-container');
+    container.innerHTML = `
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Loading interview session...</span>
+      </div>`;
+
+    try {
+      const messages = await api(`/interview-prep/sessions/${sessionId}`);
+      if (!messages || messages.length === 0) {
+        renderInterviewWelcomeState();
+      } else {
+        container.innerHTML = messages
+          .map((m) => renderInterviewMessageBubbleHtml(m.role, m.content, m.context_metadata?.sources || []))
+          .join('');
+        container.scrollTop = container.scrollHeight;
+      }
+    } catch (e) {
+      renderInterviewWelcomeState();
+    }
+  }
+
+  function renderInterviewWelcomeState() {
+    const container = $('#prep-chat-messages-container');
+    if (!container) return;
+
+    const roleName = currentSelectedRole || 'your target role';
+    container.innerHTML = `
+      <div class="chat-welcome-state">
+        <div class="cw-icon">🎙</div>
+        <h3>AI Interview Preparation Coach</h3>
+        <p>Grounded in your verified resume for <strong>${escapeHtml(roleName)}</strong>. Ask for technical questions, answer guidance, roadmaps, or study your uploaded documents.</p>
+        <div class="suggestion-chips">
+          <button class="prep-suggest-chip" type="button">What are my strongest skills?</button>
+          <button class="prep-suggest-chip" type="button">What technical questions can they ask for ${escapeHtml(roleName)}?</button>
+          <button class="prep-suggest-chip" type="button">Generate project questions from my resume</button>
+          <button class="prep-suggest-chip" type="button">What is my interview preparation roadmap?</button>
+          <button class="prep-suggest-chip" type="button">Give me an interview-ready answer for question 1</button>
+        </div>
+      </div>`;
+  }
+
+  function renderInterviewMessageBubbleHtml(role, content, sources = [], isProduct = false, isOutOfScope = false) {
+    const isUser = role === 'user';
+    const avatar = isUser ? (currentUser?.username?.[0] || 'U').toUpperCase() : '🎙';
+    const sourcesHtml = sources && sources.length ? `<span class="chat-sources-tag">Sources: ${escapeHtml(sources.join(', '))}</span>` : '';
+
+    const voiceBtnHtml = !isUser
+      ? `<button class="chat-voice-btn" type="button" data-speech="${escapeHtml(content)}"><span>🔊 Listen</span></button>`
+      : '';
+
+    const formattedContent = isUser ? escapeHtml(content).replace(/\n/g, '<br>') : formatPrepMarkdown(content);
+
+    return `
+      <div class="chat-bubble-row ${isUser ? 'user' : 'assistant'}">
+        <div class="chat-bubble-avatar ${!isUser ? 'prep-avatar' : ''}">${avatar}</div>
+        <div class="chat-bubble">
+          <div>${formattedContent}</div>
+          ${sourcesHtml}
+          ${voiceBtnHtml}
+        </div>
+      </div>`;
+  }
+
+  async function sendInterviewPrepMessage(question) {
+    if (!question || !question.trim()) return;
+    const container = $('#prep-chat-messages-container');
+
+    // Remove welcome state if present
+    const welcome = container.querySelector('.chat-welcome-state');
+    if (welcome) welcome.remove();
+
+    // Hide product redirect banner if open
+    const prodBanner = $('#prep-product-redirect-banner');
+    if (prodBanner) prodBanner.style.display = 'none';
+
+    // Append user message immediately
+    container.insertAdjacentHTML('beforeend', renderInterviewMessageBubbleHtml('user', question));
+    container.scrollTop = container.scrollHeight;
+
+    // Typing placeholder
+    const typingId = 'prep-typing-' + Date.now();
+    container.insertAdjacentHTML(
+      'beforeend',
+      `
+      <div id="${typingId}" class="chat-bubble-row assistant">
+        <div class="chat-bubble-avatar prep-avatar">🎙</div>
+        <div class="chat-bubble"><div class="spinner" style="width:16px; height:16px; border-width:2px;"></div></div>
+      </div>`
+    );
+    container.scrollTop = container.scrollHeight;
+
+    try {
+      const res = await api('/interview-prep/chat', {
+        method: 'POST',
+        body: JSON.stringify({
+          question,
+          session_id: currentInterviewSessionId,
+          selected_role: currentSelectedRole,
+          document_id: activeAttachedDocId,
+        }),
+      });
+
+      const typingEl = $(`#${typingId}`);
+      if (typingEl) typingEl.remove();
+
+      container.insertAdjacentHTML(
+        'beforeend',
+        renderInterviewMessageBubbleHtml(
+          'assistant',
+          res.answer,
+          res.sources,
+          res.is_product_redirect,
+          res.is_out_of_scope
+        )
+      );
+      container.scrollTop = container.scrollHeight;
+
+      if (res.is_product_redirect && prodBanner) {
+        prodBanner.style.display = 'flex';
+      }
+
+      // Refresh chat title if new
+      const sIndex = interviewSessionsList.findIndex((s) => s.id === currentInterviewSessionId);
+      if (sIndex !== -1 && (interviewSessionsList[sIndex].title === 'Interview Prep Session' || interviewSessionsList[sIndex].title === 'New Chat')) {
+        interviewSessionsList[sIndex].title = question.slice(0, 50);
+        renderInterviewSessions(interviewSessionsList);
+        const activeTitle = $('#prep-active-chat-title');
+        if (activeTitle) activeTitle.textContent = interviewSessionsList[sIndex].title;
+      }
+    } catch (err) {
+      const typingEl = $(`#${typingId}`);
+      if (typingEl) typingEl.remove();
+      container.insertAdjacentHTML(
+        'beforeend',
+        renderInterviewMessageBubbleHtml(
+          'assistant',
+          err.message || 'Sorry, I encountered an issue generating your interview preparation response.'
+        )
+      );
+    }
+  }
+
+  // Fast Preparation Modules Handlers
+  async function loadStrongestSkillsModule() {
+    const container = $('#prep-skills-content');
+    container.innerHTML = '<div class="loading-state"><div class="spinner"></div><span>Analyzing validated skills...</span></div>';
+    try {
+      const res = await api('/interview-prep/strongest-skills');
+      let html = `<p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:12px;">${escapeHtml(res.explanation)}</p><div class="prep-skills-evidence-list">`;
+      for (const item of res.evidence || []) {
+        html += `
+          <div class="skill-evidence-row">
+            <span class="skill-evidence-title">${escapeHtml(item.skill)}</span>
+            <span class="skill-evidence-text">${escapeHtml(item.evidence)}</span>
+          </div>`;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    } catch (err) {
+      container.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">${escapeHtml(err.message)}</p>`;
+    }
+  }
+
+  async function loadQuestionsModule(category, containerId) {
+    const container = $(`#${containerId}`);
+    container.innerHTML = `<div class="loading-state"><div class="spinner"></div><span>Generating ${category} questions...</span></div>`;
+    try {
+      const res = await api('/interview-prep/questions', {
+        method: 'POST',
+        body: JSON.stringify({ category, role: currentSelectedRole }),
+      });
+      let html = `<p class="card-hint" style="margin-bottom:10px;">${escapeHtml(res.context_summary)}</p><div class="prep-questions-list">`;
+      (res.questions || []).forEach((q, idx) => {
+        html += `
+          <div class="prep-question-box">
+            <strong>${idx + 1}.</strong> ${escapeHtml(q)}
+            <div class="prep-question-actions">
+              <button class="ask-coach-btn" type="button" data-action="ask-prep-coach" data-question="How should I answer this interview question: &quot;${escapeHtml(q)}&quot;? Provide an interview-ready answer.">
+                Ask Coach &rarr;
+              </button>
+            </div>
+          </div>`;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    } catch (err) {
+      container.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">${escapeHtml(err.message)}</p>`;
+    }
+  }
+
+  async function loadRoadmapModule() {
+    const container = $('#prep-roadmap-content');
+    container.innerHTML = '<div class="loading-state"><div class="spinner"></div><span>Building preparation roadmap...</span></div>';
+    try {
+      const res = await api('/interview-prep/roadmap', {
+        method: 'POST',
+        body: JSON.stringify({ role: currentSelectedRole }),
+      });
+      let html = '<div class="prep-roadmap-list">';
+      (res.roadmap || []).forEach((step) => {
+        const topicsHtml = (step.topics || []).map((t) => `<span class="step-topic-tag">${escapeHtml(t)}</span>`).join('');
+        html += `
+          <div class="roadmap-step-item">
+            <div class="step-number-badge">${step.step}</div>
+            <div class="step-details">
+              <strong>${escapeHtml(step.title)}</strong>
+              <p>${escapeHtml(step.description)}</p>
+              <div class="step-topics-cloud">${topicsHtml}</div>
+            </div>
+          </div>`;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    } catch (err) {
+      container.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">${escapeHtml(err.message)}</p>`;
+    }
+  }
+
+  async function loadSkillGapModule() {
+    const container = $('#prep-skill-gap-content');
+    container.innerHTML = '<div class="loading-state"><div class="spinner"></div><span>Analyzing interview skill gaps...</span></div>';
+    try {
+      const res = await api('/interview-prep/skill-gap', {
+        method: 'POST',
+        body: JSON.stringify({ role: currentSelectedRole }),
+      });
+      let html = '<div class="skillgap-box-split">';
+      html += '<div class="skillgap-section-title">Your Verified Skills for this Role</div>';
+      html += `<div class="tag-cloud">${(res.current_skills || []).map((s) => `<span class="skill-tag">${escapeHtml(s)}</span>`).join('') || '<span class="card-hint">None</span>'}</div>`;
+
+      html += '<div class="skillgap-section-title" style="margin-top:12px;">Skills to Deepen & Master</div>';
+      html += `<div class="tag-cloud">${(res.skills_to_improve || []).map((s) => `<span class="skill-tag preferred">${escapeHtml(s)}</span>`).join('') || '<span class="card-hint">None</span>'}</div>`;
+
+      html += '<div class="skillgap-section-title" style="margin-top:12px;">Recommended Missing Skills</div>';
+      html += `<div class="tag-cloud">${(res.missing_skills || []).map((s) => `<span class="skill-tag missing">${escapeHtml(s)}</span>`).join('') || '<span class="card-hint">None</span>'}</div>`;
+
+      html += '<div class="skillgap-section-title" style="margin-top:16px;">Targeted Learning Path</div>';
+      (res.learning_path || []).forEach((lp) => {
+        html += `
+          <div class="roadmap-step-item" style="margin-top:8px;">
+            <div class="step-details">
+              <strong>${escapeHtml(lp.phase)}: ${escapeHtml(lp.title)}</strong>
+              <p>${escapeHtml(lp.description)}</p>
+              <div class="step-topics-cloud">${(lp.skills || []).map((s) => `<span class="step-topic-tag">${escapeHtml(s)}</span>`).join('')}</div>
+            </div>
+          </div>`;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    } catch (err) {
+      container.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">${escapeHtml(err.message)}</p>`;
+    }
+  }
+
+  // Interview Prep Event Listeners
+  const customRoleBtn = $('#prep-set-role-btn');
+  if (customRoleBtn) {
+    customRoleBtn.onclick = () => {
+      const input = $('#prep-custom-role-input');
+      if (input && input.value.trim()) {
+        setInterviewRole(input.value.trim());
+        input.value = '';
+      }
+    };
+  }
+
+  const loadSkillsBtn = $('#prep-load-skills-btn');
+  if (loadSkillsBtn) loadSkillsBtn.onclick = () => loadStrongestSkillsModule();
+
+  const loadTechBtn = $('#prep-load-tech-btn');
+  if (loadTechBtn) loadTechBtn.onclick = () => loadQuestionsModule('technical', 'prep-tech-questions-content');
+
+  const loadHrBtn = $('#prep-load-hr-btn');
+  if (loadHrBtn) loadHrBtn.onclick = () => loadQuestionsModule('hr', 'prep-hr-questions-content');
+
+  const loadProjBtn = $('#prep-load-project-btn');
+  if (loadProjBtn) loadProjBtn.onclick = () => loadQuestionsModule('project', 'prep-project-questions-content');
+
+  const loadRoadmapBtn = $('#prep-load-roadmap-btn');
+  if (loadRoadmapBtn) loadRoadmapBtn.onclick = () => loadRoadmapModule();
+
+  const loadGapBtn = $('#prep-load-gap-btn');
+  if (loadGapBtn) loadGapBtn.onclick = () => loadSkillGapModule();
+
+  // Document Upload Listeners
+  const dropzone = $('#prep-doc-dropzone');
+  const fileInput = $('#prep-doc-file-input');
+  const uploadBtn = $('#prep-doc-upload-btn');
+  const selectedBadge = $('#prep-doc-selected-name');
+
+  if (dropzone && fileInput) {
+    dropzone.onclick = () => fileInput.click();
+
+    fileInput.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        selectedDocUploadFile = file;
+        if (selectedBadge) {
+          selectedBadge.textContent = `${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+          selectedBadge.hidden = false;
+        }
+        if (uploadBtn) uploadBtn.disabled = false;
+      }
+    };
+
+    dropzone.ondragover = (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = 'var(--accent-primary)';
+    };
+    dropzone.ondragleave = () => {
+      dropzone.style.borderColor = 'var(--border-strong)';
+    };
+    dropzone.ondrop = (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = 'var(--border-strong)';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        selectedDocUploadFile = e.dataTransfer.files[0];
+        if (selectedBadge) {
+          selectedBadge.textContent = `${selectedDocUploadFile.name} (${(selectedDocUploadFile.size / 1024).toFixed(0)} KB)`;
+          selectedBadge.hidden = false;
+        }
+        if (uploadBtn) uploadBtn.disabled = false;
+      }
+    };
+  }
+
+  const docUploadForm = $('#prep-doc-upload-form');
+  if (docUploadForm) {
+    docUploadForm.onsubmit = async (e) => {
+      e.preventDefault();
+      if (!selectedDocUploadFile) return;
+
+      if (uploadBtn) {
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;"></span> Indexing Document...';
+      }
+
+      try {
+        const fd = new FormData();
+        fd.append('file', selectedDocUploadFile);
+        const newDoc = await api('/interview-prep/documents/upload', { method: 'POST', body: fd });
+        showToast('Document uploaded and indexed for RAG!');
+        activeAttachedDocId = newDoc.id;
+        selectedDocUploadFile = null;
+        if (fileInput) fileInput.value = '';
+        if (selectedBadge) selectedBadge.hidden = true;
+        await loadInterviewDocuments();
+        updateChatDocIndicator();
+      } catch (err) {
+        showToast(err.message || 'Document upload failed.', true);
+      } finally {
+        if (uploadBtn) {
+          uploadBtn.disabled = true;
+          uploadBtn.innerHTML = '<span>Upload & Index with RAG</span>';
+        }
+      }
+    };
+  }
+
+  // New Chat & Chat Submit
+  const newPrepChatBtn = $('#prep-new-chat-btn');
+  if (newPrepChatBtn) newPrepChatBtn.onclick = () => createInterviewChatSession();
+
+  const stopVoiceBtn = $('#prep-stop-voice-btn');
+  if (stopVoiceBtn) stopVoiceBtn.onclick = () => stopSpeechPlayback();
+
+  const prepChatForm = $('#prep-chat-form');
+  if (prepChatForm) {
+    prepChatForm.onsubmit = (e) => {
+      e.preventDefault();
+      const input = $('#prep-chat-input');
+      const q = input.value.trim();
+      if (!q) return;
+      input.value = '';
+      sendInterviewPrepMessage(q);
+    };
+  }
 })();
