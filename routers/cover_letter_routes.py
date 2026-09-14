@@ -46,6 +46,8 @@ def generate_cover_letter(payload: CoverLetterGenerateRequest, current_user: Cur
     candidate = candidate_data(current_user.profile, latest_resume)
     if not any(candidate.values()):
         raise HTTPException(status_code=404, detail="Add a profile or resume before generating a cover letter.")
+    user_name = (current_user.profile.full_name if current_user.profile and current_user.profile.full_name else None) or current_user.username
+    candidate["name"] = user_name
     try:
         letter = CoverLetter(user_id=current_user.id, internship_id=payload.internship_id, content=generate(candidate, internship))
         db.add(letter); db.commit(); db.refresh(letter)

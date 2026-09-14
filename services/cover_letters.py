@@ -19,6 +19,17 @@ def _safe_gemini_error(exc: Exception, api_key: str) -> str:
     return detail[:700] or type(exc).__name__
 
 
+def _apply_candidate_signature(text: str, name: str) -> str:
+    """Replace literal 'Candidate' in closing signature with candidate's actual name."""
+    if not name or not text:
+        return text
+    closings = r"(?:Sincerely|Best regards|Warm regards|Regards|Respectfully|Yours sincerely|Yours truly|Thank you)"
+    pattern = rf"(?i)({closings},?\s*\n+)(?:\[?(?:Candidate(?:\s*Name)?|Your Name)\]?|Candidate)"
+    text = re.sub(pattern, rf"\g<1>{name}", text)
+    text = re.sub(r"(?i)(?<=\n)\s*\[?(?:Candidate(?:\s*Name)?|Your Name)\]?\s*$", name, text.rstrip())
+    return text
+
+
 def generate(candidate: dict[str, Any], internship: dict[str, Any]) -> str:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key or api_key.startswith("paste_your_"):
@@ -44,6 +55,9 @@ def generate(candidate: dict[str, Any], internship: dict[str, Any]) -> str:
             response = client.models.generate_content(model=model, contents=prompt)
             text = (response.text or "").strip()
             if text:
+                user_name = candidate.get("name") or candidate.get("full_name") or candidate.get("username")
+                if user_name:
+                    text = _apply_candidate_signature(text, str(user_name))
                 return text
         except Exception as exc:
             last_error = exc

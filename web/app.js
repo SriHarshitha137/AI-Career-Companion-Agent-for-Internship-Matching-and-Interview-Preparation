@@ -1306,7 +1306,7 @@
       const res = await api('/login', { method: 'POST', body: JSON.stringify(data) });
       localStorage.setItem('token', res.access_token);
       currentUser = await api('/me');
-      navigate('/dashboard');
+      navigate('/profile');
       showToast('Welcome to InternSphere!');
     } catch (err) {
       showToast(err.message, true);
@@ -1324,8 +1324,11 @@
     try {
       const data = Object.fromEntries(new FormData(e.target));
       await api('/register', { method: 'POST', body: JSON.stringify(data) });
-      showToast('Account created successfully! Please sign in.');
-      navigate('/login');
+      const res = await api('/login', { method: 'POST', body: JSON.stringify({ email: data.email, password: data.password }) });
+      localStorage.setItem('token', res.access_token);
+      currentUser = await api('/me');
+      navigate('/profile');
+      showToast('Account created! Please complete your profile.');
     } catch (err) {
       showToast(err.message, true);
     } finally {
