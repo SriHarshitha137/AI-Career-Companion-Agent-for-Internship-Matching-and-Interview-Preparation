@@ -154,11 +154,11 @@
           <form id="register-form" class="auth-form">
             <div class="form-group">
               <label for="reg-username">Username</label>
-              <input id="reg-username" name="username" type="text" placeholder="harshitha_b" required pattern="^[A-Za-z0-9_.-]+$" autocomplete="username">
+              <input id="reg-username" name="username" type="text" placeholder="e.g. alex_dev" required pattern="^[A-Za-z0-9_.-]+$" autocomplete="username">
             </div>
             <div class="form-group">
               <label for="reg-email">Email Address</label>
-              <input id="reg-email" name="email" type="email" placeholder="harshitha@example.com" required autocomplete="email">
+              <input id="reg-email" name="email" type="email" placeholder="name@example.com" required autocomplete="email">
             </div>
             <div class="form-group">
               <label for="reg-password">Password</label>
@@ -243,7 +243,6 @@
         <a href="/assistant" class="nav-item" data-link data-route="assistant" title="AI Assistant">
           <span class="nav-icon">◌</span>
           <span class="nav-label">AI Assistant</span>
-          <span class="nav-badge">RAG</span>
         </a>
       </nav>
 
@@ -422,21 +421,21 @@
                 <div class="form-row two-col">
                   <div class="form-group">
                     <label for="prof-full-name">Full Name</label>
-                    <input id="prof-full-name" name="full_name" type="text" placeholder="Botsa SriHarshitha">
+                    <input id="prof-full-name" name="full_name" type="text" placeholder="Enter your full name">
                   </div>
                   <div class="form-group">
                     <label for="prof-email">Email Address</label>
-                    <input id="prof-email" name="email" type="email" disabled placeholder="user@example.com">
+                    <input id="prof-email" name="email" type="email" disabled placeholder="name@example.com">
                   </div>
                 </div>
                 <div class="form-row two-col">
                   <div class="form-group">
                     <label for="prof-phone">Phone Number</label>
-                    <input id="prof-phone" name="phone" type="tel" placeholder="+91 9676039334">
+                    <input id="prof-phone" name="phone" type="tel" placeholder="Enter your phone number">
                   </div>
                   <div class="form-group">
                     <label for="prof-location">Location</label>
-                    <input id="prof-location" name="location" type="text" placeholder="Visakhapatnam, India">
+                    <input id="prof-location" name="location" type="text" placeholder="City, Country">
                   </div>
                 </div>
               </div>
@@ -445,25 +444,25 @@
                 <h3 class="form-block-title">Education</h3>
                 <div class="form-group">
                   <label for="prof-college">College / University</label>
-                  <input id="prof-college" name="college" type="text" placeholder="Anil Neerukonda Institute of Technology & Sciences">
+                  <input id="prof-college" name="college" type="text" placeholder="Enter your college or university">
                 </div>
                 <div class="form-row three-col">
                   <div class="form-group">
                     <label for="prof-degree">Degree</label>
-                    <input id="prof-degree" name="degree" type="text" placeholder="B.Tech">
+                    <input id="prof-degree" name="degree" type="text" placeholder="e.g. B.Tech, B.S., M.S.">
                   </div>
                   <div class="form-group">
                     <label for="prof-branch">Branch / Major</label>
-                    <input id="prof-branch" name="branch" type="text" placeholder="Computer Science & Engineering">
+                    <input id="prof-branch" name="branch" type="text" placeholder="e.g. Computer Science & Engineering">
                   </div>
                   <div class="form-group">
                     <label for="prof-grad-year">Graduation Year</label>
-                    <input id="prof-grad-year" name="graduation_year" type="number" min="1950" max="2100" placeholder="2028">
+                    <input id="prof-grad-year" name="graduation_year" type="number" min="1950" max="2100" placeholder="e.g. 2026">
                   </div>
                 </div>
                 <div class="form-group">
                   <label for="prof-cgpa">CGPA / Grade</label>
-                  <input id="prof-cgpa" name="cgpa" type="text" placeholder="9.17 / 10.0">
+                  <input id="prof-cgpa" name="cgpa" type="text" placeholder="e.g. 8.5 / 10.0">
                 </div>
               </div>
 
@@ -471,23 +470,23 @@
                 <h3 class="form-block-title">Professional Background</h3>
                 <div class="form-group">
                   <label for="prof-bio">Professional Summary</label>
-                  <textarea id="prof-bio" name="bio" rows="4" placeholder="Computer Science undergraduate with a 9.17 CGPA and strong fundamentals in DSA, REST APIs, and distributed systems..."></textarea>
+                  <textarea id="prof-bio" name="bio" rows="4" placeholder="Brief summary of your background, technical interests, and career goals..."></textarea>
                 </div>
                 <div class="form-group">
                   <label for="prof-tech-skills">Technical Skills (comma-separated)</label>
-                  <input id="prof-tech-skills" name="technical_skills" type="text" placeholder="Java, Python, C++, React, Node.js, PostgreSQL, Docker, Git">
+                  <input id="prof-tech-skills" name="technical_skills" type="text" placeholder="e.g. Python, React, Java, SQL, Docker (comma-separated)">
                 </div>
                 <div class="form-group">
                   <label for="prof-soft-skills">Soft Skills (comma-separated)</label>
-                  <input id="prof-soft-skills" name="soft_skills" type="text" placeholder="Problem Solving, Abstract Thinking, Agile/Scrum, Collaboration">
+                  <input id="prof-soft-skills" name="soft_skills" type="text" placeholder="e.g. Problem Solving, Communication, Team Leadership (comma-separated)">
                 </div>
                 <div class="form-group">
                   <label for="prof-certifications">Certifications (comma-separated or one per line)</label>
-                  <input id="prof-certifications" name="certifications_input" type="text" placeholder="SQL and Relational Databases (IBM), Full Stack Web Development (APNA)">
+                  <input id="prof-certifications" name="certifications_input" type="text" placeholder="e.g. AWS Certified Developer, Meta Frontend Certificate (comma-separated)">
                 </div>
                 <div class="form-group">
                   <label for="prof-achievements">Achievements (comma-separated or one per line)</label>
-                  <input id="prof-achievements" name="achievements_input" type="text" placeholder="Solved 180+ DSA questions, Global Rank 443 GirlScript Summer of Code">
+                  <input id="prof-achievements" name="achievements_input" type="text" placeholder="e.g. Hackathon Finalist, Dean's List, Open Source Contributor (comma-separated)">
                 </div>
               </div>
 
@@ -496,15 +495,15 @@
                 <div class="form-row three-col">
                   <div class="form-group">
                     <label for="prof-linkedin">LinkedIn URL</label>
-                    <input id="prof-linkedin" name="linkedin" type="url" placeholder="https://linkedin.com/in/sriharshitha-botsa">
+                    <input id="prof-linkedin" name="linkedin" type="url" placeholder="https://linkedin.com/in/yourprofile">
                   </div>
                   <div class="form-group">
                     <label for="prof-github">GitHub URL</label>
-                    <input id="prof-github" name="github" type="url" placeholder="https://github.com/SriHarshitha137">
+                    <input id="prof-github" name="github" type="url" placeholder="https://github.com/yourusername">
                   </div>
                   <div class="form-group">
                     <label for="prof-portfolio">Portfolio / Web</label>
-                    <input id="prof-portfolio" name="portfolio" type="url" placeholder="https://gig-ledger-income-tracking-tax-simp.vercel.app">
+                    <input id="prof-portfolio" name="portfolio" type="url" placeholder="https://yourportfolio.com">
                   </div>
                 </div>
               </div>
@@ -850,7 +849,7 @@
             <button id="new-chat-btn" class="btn btn-primary btn-block" type="button">
               <span>+ New Chat</span>
             </button>
-            <h4 class="history-title">Recent Chats</h4>
+            <h4 class="history-title">Previous Chats</h4>
             <div id="chat-sessions-list" class="sessions-scroll-list">
               <div class="loading-state">
                 <div class="spinner"></div>
@@ -886,7 +885,7 @@
 
             <!-- Chat Input Bar -->
             <form id="assistant-chat-form" class="chat-input-bar">
-              <input id="chat-input" name="question" type="text" placeholder="Ask InternSphere anything..." autocomplete="off" required>
+              <textarea id="chat-input" name="question" rows="1" placeholder="Ask InternSphere anything... (Press Enter to send, Shift+Enter for new line)" autocomplete="off" required></textarea>
               <button id="chat-send-btn" class="btn btn-primary" type="submit">
                 <span>Send</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
@@ -1087,7 +1086,7 @@
               <button id="prep-new-chat-btn" class="btn btn-primary btn-block" type="button">
                 <span>+ New Chat</span>
               </button>
-              <h4 class="history-title">Interview Sessions</h4>
+              <h4 class="history-title">Previous Chats</h4>
               <div id="prep-chat-sessions-list" class="sessions-scroll-list">
                 <div class="loading-state">
                   <div class="spinner"></div>
@@ -1127,7 +1126,7 @@
 
               <!-- Chat Input Bar -->
               <form id="prep-chat-form" class="chat-input-bar">
-                <input id="prep-chat-input" name="question" type="text" placeholder="Ask about your strongest skills, technical questions, answers, or documents..." autocomplete="off" required>
+                <textarea id="prep-chat-input" name="question" rows="1" placeholder="Ask about your strongest skills, technical questions, answers, or documents... (Press Enter to send, Shift+Enter for new line)" autocomplete="off" required></textarea>
                 <button id="prep-chat-send-btn" class="btn btn-primary" type="submit">
                   <span>Send</span>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>

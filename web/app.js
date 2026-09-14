@@ -427,11 +427,6 @@
           <strong>${escapeHtml(r.original_filename)}</strong>
           <small>Uploaded on ${new Date(r.uploaded_at).toLocaleDateString()}</small>
         </div>
-        <div class="resume-row-actions">
-          <button class="btn btn-secondary btn-sm" data-action="view-parsed" data-id="${r.id}">View Analysis</button>
-          <button class="btn btn-secondary btn-sm" data-action="reparse" data-id="${r.id}">Re-parse</button>
-          <a class="btn btn-secondary btn-sm" href="/resume/${r.id}/download" target="_blank">Download</a>
-        </div>
       </div>`
       )
       .join('');
@@ -864,17 +859,26 @@
   // ==============================================================
   // VIEW 8: AI ASSISTANT (BUG 10, 11, 12 FIX)
   // ==============================================================
+  function formatChatMarkdown(content) {
+    if (!content) return '';
+    let text = escapeHtml(content);
+    text = text.replace(/^### (.*$)/gim, '<h5 style="margin:10px 0 4px; color:var(--accent-primary); font-size:0.98rem;">$1</h5>');
+    text = text.replace(/^## (.*$)/gim, '<h4 style="margin:12px 0 6px; color:var(--text-primary); font-size:1.02rem;">$1</h4>');
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    text = text.replace(/`([^`]+)`/g, '<code style="background:var(--bg-subtle); padding:2px 6px; border-radius:4px; font-family:var(--font-mono); font-size:0.85em;">$1</code>');
+    text = text.replace(/^\s*[-*]\s+(.*$)/gim, '<li style="margin-left:18px; list-style-type:disc;">$1</li>');
+    text = text.replace(/^\s*(\d+)\.\s+(.*$)/gim, '<li style="margin-left:18px; list-style-type:decimal;">$2</li>');
+    text = text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+    return text;
+  }
+
   async function loadAssistantView() {
     try {
       chatSessionsList = await api('/assistant/sessions');
       renderChatSessions(chatSessionsList);
 
-      if (currentChatSessionId) {
+      if (currentChatSessionId && chatSessionsList.some((s) => s.id === currentChatSessionId)) {
         // Load active session messages
-        await loadSessionMessages(currentChatSessionId);
-      } else if (chatSessionsList.length > 0) {
-        // Default to most recent session
-        currentChatSessionId = chatSessionsList[0].id;
         await loadSessionMessages(currentChatSessionId);
       } else {
         // Start fresh empty session
@@ -966,12 +970,13 @@
     const isUser = role === 'user';
     const avatar = isUser ? (currentUser?.username?.[0] || 'U').toUpperCase() : 'IS';
     const sourcesHtml = sources && sources.length ? `<span class="chat-sources-tag">Sources: ${escapeHtml(sources.join(', '))}</span>` : '';
+    const formattedContent = isUser ? escapeHtml(content).replace(/\n/g, '<br>') : formatChatMarkdown(content);
 
     return `
       <div class="chat-bubble-row ${isUser ? 'user' : 'assistant'}">
         <div class="chat-bubble-avatar">${avatar}</div>
         <div class="chat-bubble">
-          <div>${escapeHtml(content).replace(/\n/g, '<br>')}</div>
+          <div>${formattedContent}</div>
           ${sourcesHtml}
         </div>
       </div>`;
@@ -996,7 +1001,11 @@
       `
       <div id="${typingId}" class="chat-bubble-row assistant">
         <div class="chat-bubble-avatar">IS</div>
-        <div class="chat-bubble"><div class="spinner" style="width:16px; height:16px; border-width:2px;"></div></div>
+        <div class="chat-bubble">
+          <div class="typing-indicator">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
       </div>`
     );
     container.scrollTop = container.scrollHeight;
@@ -1551,6 +1560,16 @@
   // AI Assistant Actions
   $('#new-chat-btn').onclick = () => createNewChatSession();
 
+  const assistantChatInput = $('#chat-input');
+  if (assistantChatInput) {
+    assistantChatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        $('#assistant-chat-form').requestSubmit();
+      }
+    });
+  }
+
   $('#assistant-chat-form').onsubmit = (e) => {
     e.preventDefault();
     const input = $('#chat-input');
@@ -1812,9 +1831,6 @@
 
       if (currentInterviewSessionId && interviewSessionsList.some((s) => s.id === currentInterviewSessionId)) {
         await loadInterviewSessionMessages(currentInterviewSessionId);
-      } else if (interviewSessionsList.length > 0) {
-        currentInterviewSessionId = interviewSessionsList[0].id;
-        await loadInterviewSessionMessages(currentInterviewSessionId);
       } else {
         await createInterviewChatSession();
       }
@@ -1965,7 +1981,11 @@
       `
       <div id="${typingId}" class="chat-bubble-row assistant">
         <div class="chat-bubble-avatar prep-avatar">🎙</div>
-        <div class="chat-bubble"><div class="spinner" style="width:16px; height:16px; border-width:2px;"></div></div>
+        <div class="chat-bubble">
+          <div class="typing-indicator">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
       </div>`
     );
     container.scrollTop = container.scrollHeight;
@@ -2244,6 +2264,16 @@
 
   const stopVoiceBtn = $('#prep-stop-voice-btn');
   if (stopVoiceBtn) stopVoiceBtn.onclick = () => stopSpeechPlayback();
+
+  const prepChatInputEl = $('#prep-chat-input');
+  if (prepChatInputEl) {
+    prepChatInputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        $('#prep-chat-form').requestSubmit();
+      }
+    });
+  }
 
   const prepChatForm = $('#prep-chat-form');
   if (prepChatForm) {

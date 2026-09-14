@@ -34,11 +34,20 @@ async def http_error_handler(_: Request, exc: HTTPException) -> JSONResponse:
 
 @app.exception_handler(RequestValidationError)
 async def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    errors = exc.errors()
+    # Check if any validation error is on a password field
+    is_password_error = any(
+        any("password" in str(loc).lower() for loc in err.get("loc", ()))
+        or "password" in str(err.get("msg", "")).lower()
+        or "password" in str(err.get("type", "")).lower()
+        for err in errors
+    )
+    message = "Invalid password" if is_password_error else "Invalid request data."
     return JSONResponse(
         status_code=422,
         # Multipart validation errors can contain raw bytes. Encode them before
         # returning JSON so invalid uploads never trigger a serialization error.
-        content={"error": {"message": "Invalid request data.", "details": jsonable_encoder(exc.errors())}},
+        content={"error": {"message": message, "details": jsonable_encoder(errors)}},
     )
 
 

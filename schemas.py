@@ -94,6 +94,13 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
 
+    @field_validator("password")
+    @classmethod
+    def password_needs_letter_and_digit(cls, value: str) -> str:
+        if not any(char.isalpha() for char in value) or not any(char.isdigit() for char in value):
+            raise ValueError("Password must contain at least one letter and one number.")
+        return value
+
 
 class LoginRequest(BaseModel):
     email: EmailStr

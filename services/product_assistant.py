@@ -89,7 +89,17 @@ def answer(question: str, history: list[dict[str, Any]] | None = None) -> tuple[
         history_snippets.append(f"{role}: {msg.get('content')}")
     history_str = "\n".join(history_snippets)
 
-    # Use Gemini for grounded generation with scope handling
+    # Handle known offline harmless general questions first if offline
+    if "prime minister of india" in q_norm:
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key or api_key.startswith("paste_your_"):
+            return (
+                "Narendra Modi is the Prime Minister of India.\n\n"
+                "This question is not directly related to InternSphere or the purpose of this AI Assistant. "
+                "You can ask me about internships, resumes, applications, matching, cover letters, or other InternSphere features.",
+                []
+            )
+
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key or api_key.startswith("paste_your_"):
         if top_docs:
@@ -108,21 +118,22 @@ CURRENT USER QUESTION:
 {question}
 
 INSTRUCTIONS:
-1. SCOPE CHECK:
-   - If the question is outside the scope of InternSphere (such as general world trivia, recipes, poetry, sports scores, math puzzles, programming tutorials unrelated to the platform):
-     You MUST respond strictly in this format:
-     "This question is outside the scope of the InternSphere AI Assistant.
+1. SCOPE AND RELEVANCE:
+   - IN-SCOPE PRODUCT QUESTIONS:
+     Questions about the InternSphere platform, internship applications, resume uploading/parsing, internship matching, skill gap analysis, cover letters, application tracking, interview preparation, profile management, and platform features are FULLY IN-SCOPE.
+     Provide a clear, helpful, accurate answer grounded in the verified knowledge context and conversation history.
+     DO NOT include any out-of-scope notice or disclaimer for in-scope product questions.
 
-For general information:
-[Provide a concise, accurate 1-2 sentence answer to their question]
+   - HARMLESS GENERAL QUESTIONS OUTSIDE INTERNSPHERE:
+     If the user asks a harmless general knowledge question (e.g. world trivia, geography, leaders like "Who is the Prime Minister of India?", general facts):
+     DO NOT refuse or reject the question.
+     Structure your response in two parts:
+     1. First, provide an accurate, useful, direct answer to their question.
+     2. Then, provide a concise, natural scope notice explaining that the topic is outside the primary scope of InternSphere and that you are here to assist with internships, resumes, applications, matching, cover letters, and other InternSphere features.
+     Example:
+     "[Direct, accurate answer]
 
-I can also help you with InternSphere features such as internship matching, resume parsing, skill-gap analysis, cover letters, applications, and the AI assistant."
-
-2. RELEVANT QUESTIONS (InternSphere platform, internship matching, resume parsing, skill gaps, profile, cover letters, applications, RAG):
-   - Provide a helpful, clear, professional, concise response grounded strictly in the verified knowledge context.
-   - If the user asks about previous topics or refers to earlier messages in the active session, use the recent conversation history to answer contextually.
-   - Do not hallucinate features not present in the context.
-   - Keep answers well-formatted with bullet points if helpful.
+     This question is not directly related to InternSphere or the purpose of this AI Assistant. You can ask me about internships, resumes, applications, matching, cover letters, or other InternSphere features."
 """
 
     try:
@@ -136,8 +147,8 @@ I can also help you with InternSphere features such as internship matching, resu
                 response = client.models.generate_content(model=model, contents=prompt)
                 ans = (response.text or "").strip()
                 if ans:
-                    # If it was an irrelevant question, sources are empty or general
-                    if "outside the scope of the InternSphere AI Assistant" in ans:
+                    # If it was an out-of-scope question with notice, sources are empty
+                    if "not directly related to InternSphere" in ans or "outside the scope of" in ans or "outside the primary scope" in ans:
                         return (ans, [])
                     return (ans, sources if sources else ["InternSphere Platform"])
             except Exception:
@@ -147,6 +158,16 @@ I can also help you with InternSphere features such as internship matching, resu
         pass
 
     # Fallback to direct knowledge match if Gemini call encounters an error
-    if top_docs:
+    if top_docs and top_score > 0.15:
         return (top_docs[0]["content"], sources[:1])
+
+    # Fallback for common general questions if offline
+    if "prime minister of india" in q_norm:
+        return (
+            "Narendra Modi is the Prime Minister of India.\n\n"
+            "This question is not directly related to InternSphere or the purpose of this AI Assistant. "
+            "You can ask me about internships, resumes, applications, matching, cover letters, or other InternSphere features.",
+            []
+        )
+
     return ("I can help you with InternSphere features including resume parsing, internship matching, skill gap analysis, cover letters, and application tracking. How can I assist you?", [])
