@@ -17,6 +17,7 @@
   let activeLetterRecord = null;
   let chatSessionsList = [];
   let currentChatSessionId = null;
+  let currentFloatingChatSessionId = null;
   let selectedSkillGapInternshipId = null;
   let pendingModalAction = null;
   let selectedPhotoFile = null;
@@ -187,6 +188,11 @@
       }
     }
 
+    if (route === 'assistant') {
+      openFloatingAssistant();
+      route = 'dashboard';
+    }
+
     const validPages = [
       'dashboard',
       'profile',
@@ -195,7 +201,6 @@
       'skill-gap',
       'applications',
       'cover-letters',
-      'assistant',
       'interview-prep',
     ];
     const targetPage = validPages.includes(route) ? route : 'dashboard';
@@ -227,7 +232,6 @@
     if (targetPage === 'skill-gap') loadSkillGapView();
     if (targetPage === 'applications') loadApplicationsView();
     if (targetPage === 'cover-letters') loadCoverLettersView();
-    if (targetPage === 'assistant') loadAssistantView();
     if (targetPage === 'interview-prep') loadInterviewPrepView();
   }
 
@@ -872,109 +876,103 @@
     return text;
   }
 
-  async function loadAssistantView() {
-    try {
-      chatSessionsList = await api('/assistant/sessions');
-      renderChatSessions(chatSessionsList);
+  // FLOATING AI ASSISTANT OVERLAY LOGIC
+  function openFloatingAssistant() {
+    const win = $('#floating-assistant-window');
+    if (!win) return;
+    win.classList.remove('minimized');
+    win.hidden = false;
+    if (!currentFloatingChatSessionId) {
+      createNewFloatingChatSession();
+    }
+    const input = $('#floating-chat-input');
+    if (input) setTimeout(() => input.focus(), 100);
+  }
 
-      if (currentChatSessionId && chatSessionsList.some((s) => s.id === currentChatSessionId)) {
-        // Load active session messages
-        await loadSessionMessages(currentChatSessionId);
-      } else {
-        // Start fresh empty session
-        await createNewChatSession();
-      }
-    } catch (err) {
-      showToast('Could not load chat sessions.', true);
+  function minimizeFloatingAssistant() {
+    const win = $('#floating-assistant-window');
+    if (!win) return;
+    win.classList.add('minimized');
+    win.hidden = true;
+  }
+
+  function toggleMaximizeFloatingAssistant() {
+    const win = $('#floating-assistant-window');
+    if (!win) return;
+    const isMax = win.classList.toggle('maximized');
+    const maxIcon = $('#floating-maximize-btn .maximize-icon');
+    const minIcon = $('#floating-maximize-btn .minimize-icon');
+    if (maxIcon && minIcon) {
+      maxIcon.style.display = isMax ? 'none' : 'block';
+      minIcon.style.display = isMax ? 'block' : 'none';
     }
   }
 
-  function renderChatSessions(sessions) {
-    const container = $('#chat-sessions-list');
-    if (!sessions || sessions.length === 0) {
-      container.innerHTML = '<p class="card-hint">No recent chats.</p>';
-      return;
+  function toggleFloatingAssistant() {
+    const win = $('#floating-assistant-window');
+    if (!win) return;
+    if (win.classList.contains('minimized') || win.hidden) {
+      openFloatingAssistant();
+    } else {
+      minimizeFloatingAssistant();
     }
-    container.innerHTML = sessions
-      .map(
-        (s) => `
-      <div class="session-item-btn ${s.id === currentChatSessionId ? 'active' : ''}" data-action="switch-session" data-id="${s.id}">
-        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">${escapeHtml(s.title)}</span>
-        <button class="session-delete-btn" data-action="delete-session" data-id="${s.id}" title="Delete chat">&times;</button>
-      </div>`
-      )
-      .join('');
   }
 
-  async function createNewChatSession() {
+  async function createNewFloatingChatSession() {
     try {
       const newSession = await api('/assistant/sessions', {
         method: 'POST',
-        body: JSON.stringify({ title: 'New Career Chat' }),
+        body: JSON.stringify({ title: 'Career Chat' }),
       });
-      currentChatSessionId = newSession.id;
-      chatSessionsList = [newSession, ...chatSessionsList];
-      renderChatSessions(chatSessionsList);
-
-      // Reset message view to empty welcome state (BUG 10 FIX)
-      $('#active-chat-title').textContent = newSession.title;
-      renderWelcomeChatState();
+      currentFloatingChatSessionId = newSession.id;
+      renderFloatingWelcomeChatState();
     } catch (err) {
-      showToast('Could not initialize new chat session.', true);
+      showToast('Could not initialize chat session.', true);
     }
   }
 
-  function renderWelcomeChatState() {
-    const container = $('#chat-messages-container');
+  function renderFloatingWelcomeChatState() {
+    const container = $('#floating-chat-messages');
+    if (!container) return;
     container.innerHTML = `
-      <div class="chat-welcome-state">
-        <div class="cw-icon">◌</div>
+      <div class="chat-welcome-state floating-welcome">
+        <div class="cw-icon floating-cw-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+            <circle cx="12" cy="5" r="2"></circle>
+            <path d="M12 7v4"></path>
+            <line x1="8" y1="16" x2="8.01" y2="16"></line>
+            <line x1="16" y1="16" x2="16.01" y2="16"></line>
+          </svg>
+        </div>
         <h3>Welcome to InternSphere AI</h3>
-        <p>Ask anything about matching, your skill gaps, resume extraction, or applications.</p>
-        <div class="suggestion-chips">
-          <button class="suggest-chip" type="button">How does internship matching work?</button>
-          <button class="suggest-chip" type="button">What is skill gap analysis?</button>
-          <button class="suggest-chip" type="button">How does resume parsing work?</button>
-          <button class="suggest-chip" type="button">What does my match percentage mean?</button>
+        <p>Ask anything about how matching works, your skill gaps, resume extraction, or applications.</p>
+        <div class="suggestion-chips floating-chips">
+          <button class="floating-suggest-chip" type="button">How does internship matching work?</button>
+          <button class="floating-suggest-chip" type="button">What is skill gap analysis?</button>
+          <button class="floating-suggest-chip" type="button">How does resume parsing work?</button>
+          <button class="floating-suggest-chip" type="button">What does my match percentage mean?</button>
         </div>
       </div>`;
   }
 
-  async function loadSessionMessages(sessionId) {
-    currentChatSessionId = sessionId;
-    const session = chatSessionsList.find((s) => s.id === sessionId);
-    $('#active-chat-title').textContent = session?.title || 'Conversation';
-    renderChatSessions(chatSessionsList);
-
-    const container = $('#chat-messages-container');
-    container.innerHTML = `
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <span>Loading session messages...</span>
-      </div>`;
-
-    try {
-      const messages = await api(`/assistant/sessions/${sessionId}`);
-      if (!messages || messages.length === 0) {
-        renderWelcomeChatState();
-      } else {
-        container.innerHTML = messages.map((m) => renderMessageBubbleHtml(m.role, m.content)).join('');
-        container.scrollTop = container.scrollHeight;
-      }
-    } catch (e) {
-      renderWelcomeChatState();
-    }
-  }
-
-  function renderMessageBubbleHtml(role, content, sources = []) {
+  function renderFloatingMessageBubbleHtml(role, content, sources = []) {
     const isUser = role === 'user';
-    const avatar = isUser ? (currentUser?.username?.[0] || 'U').toUpperCase() : 'IS';
+    const avatar = isUser
+      ? (currentUser?.username?.[0] || 'U').toUpperCase()
+      : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+           <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+           <circle cx="12" cy="5" r="2"></circle>
+           <path d="M12 7v4"></path>
+           <line x1="8" y1="16" x2="8.01" y2="16"></line>
+           <line x1="16" y1="16" x2="16.01" y2="16"></line>
+         </svg>`;
     const sourcesHtml = sources && sources.length ? `<span class="chat-sources-tag">Sources: ${escapeHtml(sources.join(', '))}</span>` : '';
-    const formattedContent = isUser ? escapeHtml(content).replace(/\n/g, '<br>') : formatChatMarkdown(content);
+    const formattedContent = isUser ? escapeHtml(content).replace(/\\n/g, '<br>') : formatChatMarkdown(content);
 
     return `
       <div class="chat-bubble-row ${isUser ? 'user' : 'assistant'}">
-        <div class="chat-bubble-avatar">${avatar}</div>
+        <div class="chat-bubble-avatar floating-avatar-badge">${avatar}</div>
         <div class="chat-bubble">
           <div>${formattedContent}</div>
           ${sourcesHtml}
@@ -982,25 +980,35 @@
       </div>`;
   }
 
-  async function sendAssistantMessage(question) {
+  async function sendFloatingAssistantMessage(question) {
     if (!question || !question.trim()) return;
-    const container = $('#chat-messages-container');
+    const container = $('#floating-chat-messages');
+    if (!container) return;
 
-    // Remove welcome state if present
-    const welcome = container.querySelector('.chat-welcome-state');
+    if (!currentFloatingChatSessionId) {
+      await createNewFloatingChatSession();
+    }
+
+    const welcome = container.querySelector('.floating-welcome');
     if (welcome) welcome.remove();
 
-    // Append user message immediately
-    container.insertAdjacentHTML('beforeend', renderMessageBubbleHtml('user', question));
+    container.insertAdjacentHTML('beforeend', renderFloatingMessageBubbleHtml('user', question));
     container.scrollTop = container.scrollHeight;
 
-    // Show typing placeholder
     const typingId = 'typing-' + Date.now();
     container.insertAdjacentHTML(
       'beforeend',
       `
       <div id="${typingId}" class="chat-bubble-row assistant">
-        <div class="chat-bubble-avatar">IS</div>
+        <div class="chat-bubble-avatar floating-avatar-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+            <circle cx="12" cy="5" r="2"></circle>
+            <path d="M12 7v4"></path>
+            <line x1="8" y1="16" x2="8.01" y2="16"></line>
+            <line x1="16" y1="16" x2="16.01" y2="16"></line>
+          </svg>
+        </div>
         <div class="chat-bubble">
           <div class="typing-indicator">
             <span></span><span></span><span></span>
@@ -1013,26 +1021,22 @@
     try {
       const res = await api('/assistant/chat', {
         method: 'POST',
-        body: JSON.stringify({ question, session_id: currentChatSessionId }),
+        body: JSON.stringify({ question, session_id: currentFloatingChatSessionId }),
       });
 
       const typingEl = $(`#${typingId}`);
       if (typingEl) typingEl.remove();
 
-      container.insertAdjacentHTML('beforeend', renderMessageBubbleHtml('assistant', res.answer, res.sources));
+      container.insertAdjacentHTML('beforeend', renderFloatingMessageBubbleHtml('assistant', res.answer, res.sources));
       container.scrollTop = container.scrollHeight;
-
-      // Refresh chat title if updated
-      const sIndex = chatSessionsList.findIndex((s) => s.id === currentChatSessionId);
-      if (sIndex !== -1 && chatSessionsList[sIndex].title === 'New Career Chat') {
-        chatSessionsList[sIndex].title = question.slice(0, 50);
-        renderChatSessions(chatSessionsList);
-        $('#active-chat-title').textContent = chatSessionsList[sIndex].title;
-      }
     } catch (err) {
       const typingEl = $(`#${typingId}`);
       if (typingEl) typingEl.remove();
-      container.insertAdjacentHTML('beforeend', renderMessageBubbleHtml('assistant', err.message || 'Sorry, I encountered an error answering your question.'));
+      container.insertAdjacentHTML(
+        'beforeend',
+        renderFloatingMessageBubbleHtml('assistant', err.message || 'Sorry, I encountered an error answering your question.')
+      );
+      container.scrollTop = container.scrollHeight;
     }
   }
 
@@ -1157,8 +1161,8 @@
     if (e.target.id === 'tab-login') navigate('/login');
     if (e.target.id === 'tab-register') navigate('/register');
 
-    // Matches / Cards Action delegation
-    const btn = e.target.closest('button[data-action]');
+    // Matches / Cards Action delegation (supports both buttons and container rows)
+    const btn = e.target.closest('[data-action]');
     if (btn) {
       const action = btn.dataset.action;
       const id = btn.dataset.id;
@@ -1278,9 +1282,9 @@
       return;
     }
 
-    // Suggestion chips in Assistant
-    if (e.target.classList.contains('suggest-chip')) {
-      sendAssistantMessage(e.target.textContent);
+    // Suggestion chips in Floating Assistant
+    if (e.target.classList.contains('floating-suggest-chip') || e.target.classList.contains('suggest-chip')) {
+      sendFloatingAssistantMessage(e.target.textContent);
       return;
     }
 
@@ -1557,27 +1561,45 @@
   $('#editor-download-txt-btn').onclick = () => downloadCoverLetterFile('txt');
   $('#editor-download-pdf-btn').onclick = () => downloadCoverLetterFile('pdf');
 
-  // AI Assistant Actions
-  $('#new-chat-btn').onclick = () => createNewChatSession();
+  // Floating AI Assistant Event Listeners
+  const floatingBtn = $('#floating-assistant-btn');
+  if (floatingBtn) floatingBtn.onclick = () => toggleFloatingAssistant();
 
-  const assistantChatInput = $('#chat-input');
-  if (assistantChatInput) {
-    assistantChatInput.addEventListener('keydown', (e) => {
+  const floatingMinBtn = $('#floating-minimize-btn');
+  if (floatingMinBtn) floatingMinBtn.onclick = () => minimizeFloatingAssistant();
+
+  const floatingMaxBtn = $('#floating-maximize-btn');
+  if (floatingMaxBtn) floatingMaxBtn.onclick = () => toggleMaximizeFloatingAssistant();
+
+  const floatingNewChatBtn = $('#floating-new-chat-btn');
+  if (floatingNewChatBtn) floatingNewChatBtn.onclick = () => createNewFloatingChatSession();
+
+  const floatingChatInput = $('#floating-chat-input');
+  if (floatingChatInput) {
+    floatingChatInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        $('#assistant-chat-form').requestSubmit();
+        $('#floating-chat-form').requestSubmit();
       }
     });
   }
 
-  $('#assistant-chat-form').onsubmit = (e) => {
-    e.preventDefault();
-    const input = $('#chat-input');
-    const q = input.value.trim();
-    if (!q) return;
-    input.value = '';
-    sendAssistantMessage(q);
-  };
+  const floatingChatForm = $('#floating-chat-form');
+  if (floatingChatForm) {
+    floatingChatForm.onsubmit = (e) => {
+      e.preventDefault();
+      const input = $('#floating-chat-input');
+      const q = input.value.trim();
+      if (!q) return;
+      input.value = '';
+      sendFloatingAssistantMessage(q);
+    };
+  }
+
+  const prepGotoAssistantBtn = $('#prep-goto-assistant-btn');
+  if (prepGotoAssistantBtn) {
+    prepGotoAssistantBtn.onclick = () => openFloatingAssistant();
+  }
 
   // ==============================================================
   // VIEW 9: INTERVIEW PREPARATION AGENT
@@ -1831,6 +1853,8 @@
 
       if (currentInterviewSessionId && interviewSessionsList.some((s) => s.id === currentInterviewSessionId)) {
         await loadInterviewSessionMessages(currentInterviewSessionId);
+      } else if (interviewSessionsList.length > 0) {
+        await loadInterviewSessionMessages(interviewSessionsList[0].id);
       } else {
         await createInterviewChatSession();
       }
@@ -1852,7 +1876,7 @@
       .map(
         (s) => `
         <div class="session-item-btn ${s.id === currentInterviewSessionId ? 'active' : ''}" data-action="switch-prep-session" data-id="${s.id}">
-          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">${escapeHtml(s.title)}</span>
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; pointer-events:none;">${escapeHtml(s.title)}</span>
           <button class="session-delete-btn" data-action="delete-prep-session" data-id="${s.id}" title="Delete interview chat">&times;</button>
         </div>`
       )
@@ -1870,7 +1894,7 @@
         }),
       });
       currentInterviewSessionId = newSession.id;
-      interviewSessionsList = [newSession, ...interviewSessionsList];
+      interviewSessionsList = [newSession, ...interviewSessionsList.filter((s) => s.id !== newSession.id)];
       renderInterviewSessions(interviewSessionsList);
 
       const activeTitle = $('#prep-active-chat-title');

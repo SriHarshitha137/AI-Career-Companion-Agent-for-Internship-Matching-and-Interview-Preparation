@@ -240,10 +240,6 @@
           <span class="nav-label">Interview Preparation</span>
           <span class="nav-badge">AI Agent</span>
         </a>
-        <a href="/assistant" class="nav-item" data-link data-route="assistant" title="AI Assistant">
-          <span class="nav-icon">◌</span>
-          <span class="nav-label">AI Assistant</span>
-        </a>
       </nav>
 
       <div class="sidebar-footer">
@@ -831,69 +827,6 @@
         </div>
       </section>
 
-      <!-- ========================================================== -->
-      <!-- VIEW 8: AI ASSISTANT                                       -->
-      <!-- ========================================================== -->
-      <section id="assistant-page" class="view-page" hidden>
-        <div class="view-header">
-          <div class="view-title-group">
-            <span class="view-eyebrow">PRODUCT KNOWLEDGE ASSISTANT</span>
-            <h1>InternSphere Assistant</h1>
-            <p class="view-subtitle">Ask questions about matching, resume parsing, skill gaps, cover letters, and platform features.</p>
-          </div>
-        </div>
-
-        <div class="chat-workspace-grid">
-          <!-- Left: Sessions Sidebar -->
-          <aside class="chat-history-sidebar card">
-            <button id="new-chat-btn" class="btn btn-primary btn-block" type="button">
-              <span>+ New Chat</span>
-            </button>
-            <h4 class="history-title">Previous Chats</h4>
-            <div id="chat-sessions-list" class="sessions-scroll-list">
-              <div class="loading-state">
-                <div class="spinner"></div>
-                <span>Loading chats...</span>
-              </div>
-            </div>
-          </aside>
-
-          <!-- Right: Interactive Chat Panel -->
-          <div class="chat-main-card card">
-            <div class="chat-panel-header">
-              <div class="agent-avatar-badge">IS</div>
-              <div>
-                <strong id="active-chat-title">New Conversation</strong>
-                <span class="agent-status-indicator"><span class="green-dot"></span> Active & Grounded in Product RAG</span>
-              </div>
-            </div>
-
-            <!-- Messages Scroll Area -->
-            <div id="chat-messages-container" class="chat-messages-scroll">
-              <div class="chat-welcome-state">
-                <div class="cw-icon">◌</div>
-                <h3>Welcome to InternSphere AI</h3>
-                <p>Ask anything about how matching works, your skill gaps, resume extraction, or applications.</p>
-                <div class="suggestion-chips">
-                  <button class="suggest-chip" type="button">How does internship matching work?</button>
-                  <button class="suggest-chip" type="button">What is skill gap analysis?</button>
-                  <button class="suggest-chip" type="button">How does resume parsing work?</button>
-                  <button class="suggest-chip" type="button">What does my match percentage mean?</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Chat Input Bar -->
-            <form id="assistant-chat-form" class="chat-input-bar">
-              <textarea id="chat-input" name="question" rows="1" placeholder="Ask InternSphere anything... (Press Enter to send, Shift+Enter for new line)" autocomplete="off" required></textarea>
-              <button id="chat-send-btn" class="btn btn-primary" type="submit">
-                <span>Send</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-              </button>
-            </form>
-          </div>
-        </div>
-      </section>
 
       <!-- ========================================================== -->
       <!-- VIEW 9: INTERVIEW PREPARATION AGENT                        -->
@@ -1115,8 +1048,8 @@
 
               <!-- Product Redirect Alert (Shown dynamically when product questions are asked) -->
               <div id="prep-product-redirect-banner" class="product-redirect-banner" style="display:none;">
-                <span>This was a product question. For questions about using InternSphere, please visit the AI Assistant.</span>
-                <a href="/assistant" class="btn btn-primary btn-sm" data-link>Go to AI Assistant &rarr;</a>
+                <span>This was a product question. For questions about using InternSphere, please consult the AI Assistant.</span>
+                <button id="prep-goto-assistant-btn" class="btn btn-primary btn-sm" type="button">Open AI Assistant &rarr;</button>
               </div>
 
               <!-- Messages Scroll Area -->
@@ -1139,6 +1072,90 @@
 
     </main>
   </section>
+
+  <!-- Floating AI Assistant Chatbot (Overlay) -->
+  <div id="floating-assistant-container" class="floating-assistant-container">
+    <!-- Floating Launcher Robot Button (Bottom-Right) -->
+    <button id="floating-assistant-btn" class="floating-assistant-btn" type="button" title="Open AI Assistant" aria-label="Open AI Assistant">
+      <div class="fab-robot-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+          <circle cx="12" cy="5" r="2"></circle>
+          <path d="M12 7v4"></path>
+          <line x1="8" y1="16" x2="8.01" y2="16"></line>
+          <line x1="16" y1="16" x2="16.01" y2="16"></line>
+        </svg>
+      </div>
+      <span class="fab-badge-dot"></span>
+      <span class="fab-tooltip">AI Assistant</span>
+    </button>
+
+    <!-- Floating Chat Window (Overlay) -->
+    <div id="floating-assistant-window" class="floating-chat-window minimized" hidden>
+      <div class="floating-chat-header">
+        <div class="floating-chat-header-info">
+          <div class="floating-avatar-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+              <circle cx="12" cy="5" r="2"></circle>
+              <path d="M12 7v4"></path>
+              <line x1="8" y1="16" x2="8.01" y2="16"></line>
+              <line x1="16" y1="16" x2="16.01" y2="16"></line>
+            </svg>
+          </div>
+          <div>
+            <strong class="floating-chat-title">InternSphere Assistant</strong>
+            <span class="floating-chat-status"><span class="green-dot"></span> Online & Grounded</span>
+          </div>
+        </div>
+        <div class="floating-chat-header-actions">
+          <button id="floating-new-chat-btn" class="floating-icon-btn" type="button" title="Start New Chat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span class="btn-text-sm">+ New Chat</span>
+          </button>
+          <button id="floating-maximize-btn" class="floating-icon-btn" type="button" title="Maximize/Restore">
+            <svg class="maximize-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            <svg class="minimize-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+          </button>
+          <button id="floating-minimize-btn" class="floating-icon-btn" type="button" title="Minimize Chatbot">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Scroll Area (NO previous sessions list, strictly isolated) -->
+      <div id="floating-chat-messages" class="floating-chat-messages">
+        <!-- Welcome State -->
+        <div class="chat-welcome-state floating-welcome">
+          <div class="cw-icon floating-cw-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+              <circle cx="12" cy="5" r="2"></circle>
+              <path d="M12 7v4"></path>
+              <line x1="8" y1="16" x2="8.01" y2="16"></line>
+              <line x1="16" y1="16" x2="16.01" y2="16"></line>
+            </svg>
+          </div>
+          <h3>Welcome to InternSphere AI</h3>
+          <p>Ask anything about how matching works, your skill gaps, resume extraction, or applications.</p>
+          <div class="suggestion-chips floating-chips">
+            <button class="floating-suggest-chip" type="button">How does internship matching work?</button>
+            <button class="floating-suggest-chip" type="button">What is skill gap analysis?</button>
+            <button class="floating-suggest-chip" type="button">How does resume parsing work?</button>
+            <button class="floating-suggest-chip" type="button">What does my match percentage mean?</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input Bar -->
+      <form id="floating-chat-form" class="floating-chat-input-bar">
+        <textarea id="floating-chat-input" name="question" rows="1" placeholder="Ask InternSphere anything... (Enter to send)" autocomplete="off" required></textarea>
+        <button id="floating-chat-send-btn" class="btn btn-primary floating-send-btn" type="submit" aria-label="Send">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- Application Logic -->
   <script src="/web/app.js?v=2.2.0"></script>
