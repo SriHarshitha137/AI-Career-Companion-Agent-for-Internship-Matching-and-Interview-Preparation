@@ -1,4 +1,4 @@
-# InternSphere — AI-Powered Internship Matching & Career Assistant
+# InternSphere — AI Career Companion Agent for Internship Matching and Interview Preparation
 
 [![Python Version](https://img.shields.io/badge/Python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -277,7 +277,7 @@ Ensure the following runtimes and tools are installed on your system:
 Clone the project repository from GitHub:
 
 ```bash
-git clone https://github.com/SriHarshitha137/AI_INTERNSHIP_APPLICATION_AGENT.git
+git clone https://github.com/SriHarshitha137/AI-Career-Companion Agent for Internship Matching and Interview Preparation.git
 cd AI_INTERNSHIP_APPLICATION_AGENT
 ```
 
