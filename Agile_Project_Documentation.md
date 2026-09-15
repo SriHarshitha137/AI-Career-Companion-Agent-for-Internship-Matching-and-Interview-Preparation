@@ -17,7 +17,7 @@ InternSphere — AI Career Companion Agent for Internship Matching and Interview
 BOTSA SRIHARSHITHA
 
 **Project Duration:**  
-July 15-September 22
+July 22-September 22
 
 **Mentor:**  
 VIJAY PARMAR
@@ -217,7 +217,7 @@ $$\text{Parsed Resume} \longrightarrow \text{Target Role Selection} \longrightar
 The project was executed following an Agile Scrum development framework organized into five distinct 1-week sprints:
 
 ### Sprint 1: Foundation, Architecture & Authentication
-• **Duration**: [Start Date] – [Date + 7 Days]  
+
 • **Goal**: Initialize application architecture, establish database engine, and implement secure user authentication.  
 • **Sprint Backlog**:
   - Establish directory structure and virtual environment.
@@ -226,7 +226,7 @@ The project was executed following an Agile Scrum development framework organize
   - Build SPA landing layout with registration and login forms.
 
 ### Sprint 2: Resume Ingestion & Profile Management
-• **Duration**: [Date + 8 Days] – [Date + 14 Days]  
+
 • **Goal**: Deliver owner-managed profiles and the hybrid resume parsing engine.  
 • **Sprint Backlog**:
   - Implement `/profile` CRUD endpoints and profile picture uploads.
@@ -236,7 +236,7 @@ The project was executed following an Agile Scrum development framework organize
   - Combine extracted data via `merge.py` and persist into the `resumes` table.
 
 ### Sprint 3: Semantic Internship Matching & Applications
-• **Duration**: [Date + 15 Days] – [Date + 21 Days]  
+
 • **Goal**: Implement vector embeddings, semantic RAG matching, and application tracking.  
 • **Sprint Backlog**:
   - Construct 384-dimensional feature hashing and Gemini embedding indexers.
@@ -246,7 +246,7 @@ The project was executed following an Agile Scrum development framework organize
   - Design interactive matching cards and modal detail dialogs.
 
 ### Sprint 4: AI Career Services, Cover Letters & Interview Coach
-• **Duration**: [Date + 22 Days] – [Date + 28 Days]  
+
 • **Goal**: Develop AI-assisted career tools including cover letters, platform assistant, and interview preparation.  
 • **Sprint Backlog**:
   - Build fact-bounded Gemini cover letter generation with custom PDF-1.4 downloads.
@@ -256,7 +256,7 @@ The project was executed following an Agile Scrum development framework organize
   - Integrate browser Web Speech API for voice playback of coaching responses.
 
 ### Sprint 5: Testing, Integration, Hardening & Finalization
-• **Duration**: [Date + 29 Days] – [End Date]  
+
 • **Goal**: Perform comprehensive testing, resolve edge cases, refine UI responsiveness, and document the project.  
 • **Sprint Backlog**:
   - Write test suites for candidate matching, session isolation, and interview APIs.
@@ -268,28 +268,28 @@ The project was executed following an Agile Scrum development framework organize
 
 ## 8. Sprint Tasks & Status
 
-| Sprint | Task Description | Assigned To | Status |
+| Sprint | Task Description |  Status |
 | :--- | :--- | :--- | :--- |
-| **Sprint 1** | Project setup, folder conventions, and `.env` handling | Intern / Developer | Done |
-| **Sprint 1** | SQLAlchemy engine & relational model definitions (`models.py`) | Intern / Developer | Done |
-| **Sprint 1** | JWT token generation, bcrypt hashing, and auth endpoints | Intern / Developer | Done |
-| **Sprint 1** | Base single-page frontend structure (`index.html`, `styles.css`) | Intern / Developer | Done |
-| **Sprint 2** | Profile management endpoints & image upload pipeline | Intern / Developer | Done |
-| **Sprint 2** | PDF & DOCX text extraction pipeline (`extract_text.py`) | Intern / Developer | Done |
-| **Sprint 2** | Regex and Gemini LLM structured parsing integration | Intern / Developer | Done |
-| **Sprint 2** | Profile & Resume management dashboard UI | Intern / Developer | Done |
-| **Sprint 3** | Persisted JSON vector indexer (`internship_index.py`) | Intern / Developer | Done |
-| **Sprint 3** | Hybrid scoring algorithm & skill-gap analysis logic | Intern / Developer | Done |
-| **Sprint 3** | Application tracking APIs & status withdrawal endpoints | Intern / Developer | Done |
-| **Sprint 3** | Interactive matching dashboard with skill tags and filters | Intern / Developer | Done |
-| **Sprint 4** | Gemini cover letter generator & pure-Python PDF builder | Intern / Developer | Done |
-| **Sprint 4** | Product AI Assistant with RAG knowledge retrieval | Intern / Developer | Done |
-| **Sprint 4** | Interview Preparation Agent with tailored question generation | Intern / Developer | Done |
-| **Sprint 4** | Multi-turn chat persistence in database tables | Intern / Developer | Done |
-| **Sprint 4** | Web Speech API audio synthesis (`🔊 Listen` controls) | Intern / Developer | Done |
-| **Sprint 5** | Automated test suite execution across all test files | Intern / Developer | Done |
-| **Sprint 5** | Out-of-scope question routing & credential sanitization | Intern / Developer | Done |
-| **Sprint 5** | Complete documentation, Agile report, and PPT structure | Intern / Developer | Done |
+| **Sprint 1** | Project setup, folder conventions, and `.env` handling |  Done |
+| **Sprint 1** | SQLAlchemy engine & relational model definitions (`models.py`) |  Done |
+| **Sprint 1** | JWT token generation, bcrypt hashing, and auth endpoints |  Done |
+| **Sprint 1** | Base single-page frontend structure (`index.html`, `styles.css`) |  Done |
+| **Sprint 2** | Profile management endpoints & image upload pipeline | Done |
+| **Sprint 2** | PDF & DOCX text extraction pipeline (`extract_text.py`) | Done |
+| **Sprint 2** | Regex and Gemini LLM structured parsing integration | Done |
+| **Sprint 2** | Profile & Resume management dashboard UI |  Done |
+| **Sprint 3** | Persisted JSON vector indexer (`internship_index.py`) | Done |
+| **Sprint 3** | Hybrid scoring algorithm & skill-gap analysis logic |  Done |
+| **Sprint 3** | Application tracking APIs & status withdrawal endpoints | Done |
+| **Sprint 3** | Interactive matching dashboard with skill tags and filters | Done |
+| **Sprint 4** | Gemini cover letter generator & pure-Python PDF builder | Done |
+| **Sprint 4** | Product AI Assistant with RAG knowledge retrieval | Done |
+| **Sprint 4** | Interview Preparation Agent with tailored question generation | Done |
+| **Sprint 4** | Multi-turn chat persistence in database tables | Done |
+| **Sprint 4** | Web Speech API audio synthesis (`🔊 Listen` controls) | Done |
+| **Sprint 5** | Automated test suite execution across all test files | Done |
+| **Sprint 5** | Out-of-scope question routing & credential sanitization |  Done |
+| **Sprint 5** | Complete documentation, Agile report, and PPT structure | Done |
 
 ---
 
@@ -401,8 +401,13 @@ Testing was conducted using Python's standard library `unittest` framework to va
 | **Preventing Duplicate Applications** | Enforced composite unique constraints (`uq_application_user_internship`) at the database level with clean HTTP 409 exception handling. |
 
 ---
+## 12.Database Schema
 
-## 12. Final Project Status
+<img width="1015" height="508" alt="image" src="https://github.com/user-attachments/assets/4aa1dca4-3ea6-4af0-82c7-2631a84e2827" />
+
+
+
+## 13. Final Project Status
 
 ### Completed Features (✅)
 • ✅ User Registration, Login, JWT Authentication, and Password Management  
