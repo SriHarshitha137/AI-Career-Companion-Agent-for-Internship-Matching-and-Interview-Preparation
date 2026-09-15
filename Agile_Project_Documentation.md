@@ -17,16 +17,11 @@ InternSphere — AI Career Companion Agent for Internship Matching and Interview
 BOTSA SRIHARSHITHA
 
 **Project Duration:**  
-[Start Date – End Date]
+July 15-September 22
 
 **Mentor:**  
 VIJAY PARMAR
 
-**Team Members:**  
-[Team Members]
-
-**Submission Date:**  
-[Submission Date]
 
 ---
 
@@ -304,43 +299,56 @@ The project was executed following an Agile Scrum development framework organize
 - **Description**: Secure account registration, authentication, password management, and personal profile administration.
 - **Implementation**: FastAPI routers (`auth_routes.py`, `profile_routes.py`) backed by `passlib[bcrypt]` and `python-jose`. User profiles support detailed education history, branch, graduation year, CGPA, and image uploads.
 - **Output / Result**:  
-  `[Insert Screenshot: Login and Profile Management Page]`
+  <img width="1015" height="526" alt="image" src="https://github.com/user-attachments/assets/625d2489-e59a-4b8c-89e5-5a31ddc2cdef" />
+
 
 ### Feature 2: Hybrid Resume Parsing Pipeline
 - **Description**: Automatic parsing of candidate resumes in `.pdf` or `.docx` format into structured JSON.
 - **Implementation**: Text is extracted via `pdfplumber` or `python-docx`. Deterministic regular expressions parse contact details and URLs. Google Gemini extracts structured skill lists, employment history, and education. Results are unified and stored in SQLite.
 - **Output / Result**:  
-  `[Insert Screenshot: Resume Upload and Parsed Extraction View]`
+<img width="1015" height="533" alt="image" src="https://github.com/user-attachments/assets/371c5c99-665c-4418-b86c-b73024d704c3" />
+<img width="1015" height="525" alt="image" src="https://github.com/user-attachments/assets/16952119-cf59-4084-8355-18b540d6fa04" />
+
+
 
 ### Feature 3: Semantic Internship Matching & Skill-Gap Analysis
 - **Description**: Intelligent recommendation engine matching candidate resumes against internships, providing match percentages and skill gap breakdowns.
 - **Implementation**: Candidate facts are embedded into a 384-dimensional vector and compared against internship listings using cosine similarity. A weighted scoring function ($35\%$ semantic $+ 65\%$ skill ratio) determines rankings. Missing required and preferred skills are clearly itemized.
 - **Output / Result**:  
-  `[Insert Screenshot: Internship Matching Cards and Skill-Gap Breakdown]`
+<img width="1015" height="528" alt="image" src="https://github.com/user-attachments/assets/4193831e-b7b1-40ce-9fc1-587fe95f7f27" />
+<img width="1015" height="523" alt="image" src="https://github.com/user-attachments/assets/e491c875-acb5-45de-a0f1-65d88a255f41" />
+
 
 ### Feature 4: Application Lifecycle Tracking
 - **Description**: Comprehensive application tracking allowing students to apply, review application statuses, and withdraw active submissions.
 - **Implementation**: The `applications` table links users to specific internships with attached resumes and cover letters. Unique constraints prevent duplicate submissions.
 - **Output / Result**:  
-  `[Insert Screenshot: Applications Tracker Dashboard]`
+<img width="1015" height="524" alt="image" src="https://github.com/user-attachments/assets/6a0fa933-cae9-46ec-86d8-4609cd0c7ebb" />
+
 
 ### Feature 5: AI Cover Letter Generator & Binary PDF Export
 - **Description**: Generates tailored, factual cover letters for specific internships with inline editing and instant PDF downloads.
 - **Implementation**: Prompt engineering instructs Gemini to use strictly candidate and job facts without hallucinating qualifications. The letter is rendered to a clean standard PDF-1.4 file via `services/pdf_generator.py`.
 - **Output / Result**:  
-  `[Insert Screenshot: Cover Letter Editor and Download View]`
+<img width="1015" height="526" alt="image" src="https://github.com/user-attachments/assets/17473eaf-2f57-4b14-bf6e-9a11c3cf69d6" />
+<img width="1015" height="525" alt="image" src="https://github.com/user-attachments/assets/9b20f3c0-0245-469a-8ff5-59ec26a72dab" />
+<img width="1015" height="828" alt="image" src="https://github.com/user-attachments/assets/3282e026-7004-4a24-a927-47fe7b9fc615" />
+
 
 ### Feature 6: Grounded Product AI Assistant
 - **Description**: Real-time interactive assistant answering user queries regarding platform navigation, matching criteria, and application rules.
 - **Implementation**: Implements RAG over `data/product_knowledge.json` with multi-turn session persistence in `chat_sessions` and `chat_messages`.
 - **Output / Result**:  
-  `[Insert Screenshot: AI Assistant Chat Interface]`
+<img width="1015" height="518" alt="image" src="https://github.com/user-attachments/assets/2bb19c19-c544-4120-a50a-f7862e9e5103" />
+
 
 ### Feature 7: AI Interview Preparation Coach with Voice Synthesis
 - **Description**: Resume-tailored interview coach delivering role recommendations, technical/behavioral questions, STAR answer advice, and roadmaps.
 - **Implementation**: Leverages candidate resume entities to formulate structured questions. Implements conversational memory, out-of-scope filters, and triggers the browser's Web Speech API (`window.speechSynthesis`) for read-aloud audio narration.
 - **Output / Result**:  
-  `[Insert Screenshot: Interview Prep Dashboard and Audio Playback Controls]`
+<img width="1015" height="520" alt="image" src="https://github.com/user-attachments/assets/8cde96fa-f0ef-4b42-983c-8b1b1f89d2d3" />
+
+<img width="1015" height="579" alt="image" src="https://github.com/user-attachments/assets/f0bf88fa-fc30-4476-ad4f-4356e2d74d9b" />
 
 ---
 
@@ -425,73 +433,3 @@ The InternSphere platform has been successfully developed, integrated, and verif
 
 ---
 
-## 13. 10-Slide Project PPT Structure
-
-### Slide 1: Project Title
-• **Title**: InternSphere — AI Career Companion Agent for Internship Matching and Interview Preparation
-• **Subtitle**: An Intelligent Full-Stack Career Acceleration Platform  
-• **Presenter**: [Intern Name]  
-• **Role / Track**: Full-Stack & AI Engineering Intern  
-• **Mentor**: [Mentor Name]  
-• **Date**: [Submission Date]  
-
-### Slide 2: Problem Statement
-• **Inefficient Job Discovery**: Keyword search engines fail to understand candidate project context and coursework.  
-• **Opaque Skill Gaps**: Applicants receive rejection emails without insights into required missing competencies.  
-• **Application Burnout**: Crafting unique cover letters for dozens of applications is tedious and repetitive.  
-• **Generic Interview Prep**: Traditional interview guides do not adapt to a candidate's actual projects or target roles.  
-
-### Slide 3: Project Objectives
-• Build an end-to-end platform connecting student qualifications to tailored internship openings.  
-• Automate hybrid resume parsing using deterministic regex and Google Gemini structured extraction.  
-• Provide transparent, explainable matching via 384-dimensional semantic search and skill ratio calculations.  
-• Synthesize hallucination-free cover letters downloadable as clean, standard PDF documents.  
-• Provide tailored AI interview coaching with role recommendations, answer guidance, and voice playback.  
-
-### Slide 4: Proposed Solution
-• **Single-Page Web Application**: Responsive, lightweight dashboard built with HTML5, CSS3, and JavaScript.  
-• **FastAPI Backend**: Asynchronous RESTful API engine orchestrating authentication, business logic, and RAG.  
-• **Hybrid Extraction**: Two-tier parser combining regex precision with Gemini semantic comprehension.  
-• **Explainable Vector Matching**: 384-d feature hashing index paired with canonical skill overlap scoring.  
-• **Dual AI Assistants**: Dedicated Product Assistant for platform help and Interview Coach for career preparation.  
-
-### Slide 5: Technology Stack
-• **Backend**: Python 3.12+, FastAPI, Uvicorn, SQLAlchemy 2.0.  
-• **Frontend**: Vanilla HTML5, CSS3, ES6+ JavaScript, Web Speech API.  
-• **Database**: SQLite (Development) / PostgreSQL (Production).  
-• **AI & LLM**: Google GenAI SDK (`gemini-3.5-flash-lite`, `gemini-3.6-flash`).  
-• **Document Processing**: `pdfplumber`, `python-docx`, Custom PDF-1.4 Generator.  
-• **Security**: JWT Bearer Tokens (`python-jose`), bcrypt Password Hashing.  
-
-### Slide 6: Key Features & Capabilities
-• **Resume Ingestion**: Instant parsing of PDF and Word resumes into structured candidate records.  
-• **Grounded Matching**: Automated recommendation rankings showing percentage match and skill breakdowns.  
-• **Skill Gap Analysis**: Clear visualization of matched skills, missing required skills, and preferred skills.  
-• **Instant Cover Letters**: One-click generation based on verified facts with inline editing and PDF export.  
-• **Interactive Interview Coach**: Role advice, categorized questions (Tech/HR/Project), and voice read-aloud.  
-
-### Slide 7: Agile Methodology & Sprints
-• **Agile Scrum Framework**: 5 focused weekly sprints from initialization to hardening.  
-• **Sprint 1**: Setup, architecture, database models, and JWT authentication.  
-• **Sprint 2**: Profile management and hybrid PDF/DOCX resume extraction pipeline.  
-• **Sprint 3**: Vector indexing, semantic internship matching, and application tracking.  
-• **Sprint 4**: Cover letters, Product AI Assistant, and Interview Preparation Agent.  
-• **Sprint 5**: Comprehensive test suites, security hardening, and final documentation.  
-
-### Slide 8: System Architecture & Workflow
-• **Client Layer**: Single Page App communicating via secure JWT Bearer REST headers.  
-• **Application Layer**: FastAPI routes delegating to specialized services and controllers.  
-• **Persistence Layer**: SQLAlchemy ORM managing 10 relational tables with cascade isolation.  
-• **AI / RAG Pipeline**: Local 384-d vector embeddings, cosine retrieval, and Gemini prompt synthesis.  
-• **Audio Layer**: Browser Web Speech API providing hands-free coaching playback.  
-
-### Slide 9: Testing & Results
-• **Test Suite**: Automated `unittest` test suite covering matching, API routes, and session memory.  
-• **Functional Verification**: Validated full candidate journey from registration to interview preparation.  
-• **Security Hardening**: Sanitized error envelopes to prevent credential or API key leakage.  
-• **Reliability**: Verified fact-bounded cover letter synthesis preventing hallucinated qualifications.  
-
-### Slide 10: Conclusion & Future Scope
-• **Project Success**: Delivered a robust, self-contained AI platform resolving core internship search hurdles.  
-• **Key Takeaways**: Practical mastery of FastAPI, SQLAlchemy ORM, RAG vector indexing, and Gemini APIs.  
-• **Future Scope**: Live job board scraping (LinkedIn API), speech-to-text mock video interviews, and ATS resume scoring.  
