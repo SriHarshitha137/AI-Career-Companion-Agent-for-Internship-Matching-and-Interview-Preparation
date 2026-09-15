@@ -277,23 +277,10 @@ Ensure the following runtimes and tools are installed on your system:
 Clone the project repository from GitHub:
 
 ```bash
-git clone https://github.com/SriHarshitha137/AI-Career-Companion Agent for Internship Matching and Interview Preparation.git
-cd AI_INTERNSHIP_APPLICATION_AGENT
+git clone https://github.com/SriHarshitha137/AI-Career-Companion-Agent-for-Internship-Matching-and-Interview-Preparation.git
+cd AI-Career-Companion-Agent-for-Internship-Matching-and-Interview-Preparation
 ```
 
-### Checking Branches
-
-The primary branches containing complete implementations are `main` and `final-implementation`:
-
-```bash
-# Verify available branches
-git branch -a
-
-# Ensure you are on the current working branch
-git checkout final-implementation
-```
-
----
 
 ## 8. Backend Setup
 
@@ -403,8 +390,7 @@ InternSphere relies on Google Gemini for structured parsing, cover letter writin
    - `gemini-3.6-flash`: High reasoning capability for nuanced evaluation.
    - Automatic fallbacks are built into `product_assistant.py` and `interview_prep_service.py` (`gemini-3.5-flash-lite` $\rightarrow$ `gemini-3.6-flash` $\rightarrow$ `gemini-flash-latest`).
 
-> [!CAUTION]
-> Never commit your `.env` file or publish your Gemini API key to GitHub. The `.gitignore` file is pre-configured to keep your secrets private.
+
 
 ---
 
