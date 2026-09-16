@@ -1,4 +1,4 @@
-# InternSphere — AI Career Companion Agent for Internship Matching and Interview Preparation
+# AI Career Companion Agent for Internship Matching and Interview Preparation — InternSphere
 
 [![Python Version](https://img.shields.io/badge/Python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
