@@ -90,6 +90,23 @@ UPLOADS_DIRECTORY.mkdir(parents=True, exist_ok=True)
 app.mount("/web", StaticFiles(directory=WEB_DIRECTORY), name="web")
 app.mount("/uploads", StaticFiles(directory=UPLOADS_DIRECTORY), name="uploads")
 
+@app.middleware("http")
+async def spa_page_refresh_middleware(request: Request, call_next):
+    """Serve index.html directly whenever a browser refreshes any top-level page."""
+    if request.method == "GET" and "text/html" in request.headers.get("accept", ""):
+        segments = [s for s in request.url.path.strip("/").split("/") if s]
+        frontend_pages = {
+            "login", "register", "dashboard", "profile", "resumes", "internships",
+            "matches", "skill-gap", "applications", "cover-letter", "cover-letters",
+            "ai-assistant", "assistant", "interview-prep", "interview-preparation",
+        }
+        if len(segments) == 1 and segments[0] in frontend_pages:
+            return FileResponse(
+                WEB_DIRECTORY / "index.html",
+                headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+            )
+    return await call_next(request)
+
 
 @app.get("/", include_in_schema=False)
 def web_dashboard() -> FileResponse:
