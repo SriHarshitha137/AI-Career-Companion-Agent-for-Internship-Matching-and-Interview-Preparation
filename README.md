@@ -8,7 +8,19 @@
 [![Web Speech API](https://img.shields.io/badge/Web%20Speech%20API-Voice%20Audio-green.svg)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
 [![License](https://img.shields.io/badge/License-Proprietary%20%2F%20Academic-lightgrey.svg)](#license)
 
+---
+
+### 🌐 Live Demo & Deployment
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Try_InternSphere_Now-success?style=for-the-badge&logo=render&logoColor=white)](https://ai-career-companion-agent-for-internship-2gl9.onrender.com/)
+
+> 🚀 **Experience the Live Application:** **[https://ai-career-companion-agent-for-internship-2gl9.onrender.com/](https://ai-career-companion-agent-for-internship-2gl9.onrender.com/)**  
+> *Test all AI features, resume parsing, internship matching, mock interviews, and career assistance live in your browser — no local installation required!*
+
+
+---
+
 > **An AI Career Companion Agent for Internship Matching and Interview Preparation that helps students discover relevant internships, analyze skill gaps, generate personalized cover letters, prepare for interviews, and interact with an AI career assistant.**
+
 
 ---
 
