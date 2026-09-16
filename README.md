@@ -631,6 +631,26 @@ InternSphere maintains clear separation of concerns between its two AI engines:
 
 ---
 
-## 25. License
+## 🚀25. Cloud Deployment (Render)
+
+This project can be deployed seamlessly as a single unified service (FastAPI + Embedded SPA Frontend) on [Render](https://render.com).
+
+### Quick Deployment Steps:
+
+1. **Create Web Service:** Go to [Render Dashboard](https://dashboard.render.com/) -> **New +** -> **Web Service** and connect this repository.
+2. **Build & Start Commands:**
+   - **Environment:** `Python 3`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+3. **Environment Variables:**
+   Under **Environment**, configure the following variables:
+   - `GEMINI_API_KEY`: Your Google Gemini API Key from Google AI Studio.
+   - `JWT_SECRET_KEY`: A secure random secret string for JWT authentication.
+   - `EMBEDDING_PROVIDER`: `local` (Uses fast, built-in vector indexing).
+   - `PYTHON_VERSION`: `3.11.9`
+4. **Launch:** Click **Deploy Web Service**. Once deployed, Render will provide a public URL serving the complete web dashboard and API endpoints directly.
+
+
+## 26. License
 
 This project is proprietary and developed for academic and portfolio demonstration purposes. All rights reserved.
