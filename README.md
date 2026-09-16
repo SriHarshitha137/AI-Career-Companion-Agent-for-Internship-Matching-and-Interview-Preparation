@@ -16,6 +16,7 @@
 > 🚀 **Experience the Live Application:** **[https://ai-career-companion-agent-for-internship-2gl9.onrender.com/](https://ai-career-companion-agent-for-internship-2gl9.onrender.com/)**  
 > *Test all AI features, resume parsing, internship matching, mock interviews, and career assistance live in your browser — no local installation required!*
 
+⏱️ Note: Hosted on Render's free tier. If the app has been idle, the first visit may take ~25-30 seconds to spin up.
 
 ---
 
